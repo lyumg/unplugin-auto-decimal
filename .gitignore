@@ -61,7 +61,7 @@ typings/
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
-
+examples
 # next.js build output
 .next
 
@@ -79,3 +79,5 @@ dist
 
 # IDE
 .idea
+
+.DS_Store
