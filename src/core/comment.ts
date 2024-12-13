@@ -20,7 +20,11 @@ export function innerComment(path: NodePath, igc = NEXT_COMMENT) {
 }
 function skipAutoDecimalComment(path: NodePath, igc: string, isJSX = false) {
   let comments
+  const rawPath = path
   if (isJSX) {
+    if (path.node.type === 'JSXOpeningElement') {
+      path = path.parentPath!
+    }
     let prevPath = path.getPrevSibling()
     if (!prevPath.node)
       return
@@ -41,6 +45,6 @@ function skipAutoDecimalComment(path: NodePath, igc: string, isJSX = false) {
   }
   const isIgnore = comments?.some(comment => comment.value.includes(igc)) ?? false
   if (isIgnore) {
-    path.skip()
+    rawPath.skip()
   }
 }
