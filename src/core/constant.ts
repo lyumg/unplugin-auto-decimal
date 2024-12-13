@@ -16,5 +16,6 @@ export const OPERATOR_KEYS = Object.keys(OPERATOR)
 export const REGEX_SUPPORTED_EXT = /\.([cm]?[jt]sx?|vue)$/
 export const REGEX_VUE = /\.vue$/
 export const REGEX_NODE_MODULES = /node_modules/
+export const REGEX_COMPILED = /\.([cm]?[jt]sx?|vue)\?.*$/
 export const DECIMAL_PKG_NAME = '__Decimal'
 export const PKG_NAME = 'decimal.js-light'
