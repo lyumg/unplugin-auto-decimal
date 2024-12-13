@@ -148,7 +148,6 @@
     "lint": "eslint .",
     "typecheck": "tsc",
     "play": "npm -C playground run dev",
-    "prepublishOnly": "nr build",
     "release": "bumpp && npm publish",
     "start": "esno src/index.ts",
     "test": "vitest"
