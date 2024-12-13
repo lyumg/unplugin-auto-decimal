@@ -6,7 +6,7 @@ import { processBinary } from './binary'
 import { blockComment, innerComment, nextComment } from './comment'
 import { BLOCK_COMMENT, DECIMAL_PKG_NAME, FILE_COMMENT, PKG_NAME } from './constant'
 
-export function traverseOptions(options: Options, checkImport = true, templateImport = false): TraverseOptions {
+export function traverseAst(options: Options, checkImport = true, templateImport = false): TraverseOptions {
   let alreadyImported = false
   let decimalPkgName = DECIMAL_PKG_NAME
   return {
@@ -107,7 +107,7 @@ export function traverseOptions(options: Options, checkImport = true, templateIm
         return
       innerComment(path)
     },
-    BinaryExpression: path => processBinary(options, path, decimalPkgName),
+    BinaryExpression: path => processBinary({ ...options, topLevel: true }, path, decimalPkgName),
   }
 }
 function existDataProperty(declaration: ObjectExpression, options: Options, decimalPkgName: string) {

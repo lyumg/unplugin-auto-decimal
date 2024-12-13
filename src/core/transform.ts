@@ -17,11 +17,11 @@ import type {
 } from '@vue/compiler-core'
 import type { TraverseOptions } from 'babel__traverse'
 import type { AutoDecimalOptions, CommentState, Options } from '../types'
-import { traverseOptions } from './traverse'
+import { traverseAst } from './traverse'
 import { BLOCK_COMMENT, DECIMAL_PKG_NAME, NEXT_COMMENT, OPERATOR_KEYS, PKG_NAME } from './constant'
 
 export function transformAutoDecimal(code: string, autoDecimalOptions?: AutoDecimalOptions) {
-  const { msa } = getTransformed(code, traverseOptions, autoDecimalOptions)
+  const { msa } = getTransformed(code, traverseAst, autoDecimalOptions)
   return msa
 }
 export function transformVueAutoDecimal(code: string, autoDecimalOptions?: AutoDecimalOptions) {
@@ -42,7 +42,7 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions?: AutoD
     const { start, end } = scriptSection.loc
     const { msa: transformedMsa, imported } = getTransformed(
       scriptSection.content,
-      options => traverseOptions(options, true, needsImport),
+      options => traverseAst(options, true, needsImport),
       autoDecimalOptions,
     )
     if (needsImport) {
@@ -147,7 +147,7 @@ function handleInterpolation(msa: MagicStringAST, interpolationNode: Interpolati
   if (!expContent || !existTargetOperator(expContent))
     return
 
-  const { msa: transformedMsa } = getTransformed(expContent, options => traverseOptions(options, false))
+  const { msa: transformedMsa } = getTransformed(expContent, options => traverseAst(options, false))
 
   msa.update(interpolationNode.content.loc.start.offset, interpolationNode.content.loc.end.offset, transformedMsa.toString())
 }
@@ -169,7 +169,7 @@ function handleElementProps(msa: MagicStringAST, elementNode: ElementNode, comme
     if (!canParserProp(prop))
       return
 
-    const { msa: transformedMsa } = getTransformed(content, options => traverseOptions(options, false))
+    const { msa: transformedMsa } = getTransformed(content, options => traverseAst(options, false))
 
     msa.update(loc.start.offset, loc.end.offset, transformedMsa.toString())
   })

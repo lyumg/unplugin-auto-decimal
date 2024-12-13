@@ -3,6 +3,9 @@
   "scripts": {
     "dev": "nodemon -w '../src/**/*.ts' -e .ts -x vite"
   },
+  "dependencies": {
+    "decimal.js-light": "^2.5.1"
+  },
   "devDependencies": {
     "vite": "^5.4.2",
     "vite-plugin-inspect": "^0.8.7"
