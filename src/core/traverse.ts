@@ -1,5 +1,6 @@
 import { isPackageExists } from 'local-pkg'
-import type { File, FunctionExpression, ObjectExpression } from '@babel/types'
+import type { NodePath } from '@babel/traverse'
+import type { File, FunctionExpression, ImportDeclaration, ObjectExpression } from '@babel/types'
 import type { TraverseOptions } from 'babel__traverse'
 import type { Options } from '../types'
 import { processBinary } from './binary'
@@ -7,8 +8,6 @@ import { blockComment, innerComment, nextComment } from './comment'
 import { BLOCK_COMMENT, DECIMAL_PKG_NAME, FILE_COMMENT, PKG_NAME } from './constant'
 
 export function traverseAst(options: Options, checkImport = true, templateImport = false): TraverseOptions {
-  let alreadyImported = false
-  let decimalPkgName = DECIMAL_PKG_NAME
   return {
     enter(path) {
       switch (path.type) {
@@ -30,20 +29,20 @@ export function traverseAst(options: Options, checkImport = true, templateImport
       enter(path) {
         const file = path.parent as File
         const fileIgnore = file.comments?.some(comment => comment.value.includes(FILE_COMMENT)) ?? false
-        alreadyImported = fileIgnore && templateImport
+        options.imported = fileIgnore && templateImport
         if (fileIgnore && !templateImport) {
           path.skip()
         }
       },
       exit() {
-        if (!checkImport || alreadyImported || (!options.msa.hasChanged() && !templateImport)) {
+        if (!checkImport || options.imported || (!options.msa.hasChanged() && !templateImport)) {
           return
         }
         if (!isPackageExists(PKG_NAME)) {
           throw new Error(`[Auto Decimal] You will need to install ${PKG_NAME}: "npm install ${PKG_NAME}"`)
         }
-        options.msa.prepend(`\nimport ${decimalPkgName} from '${PKG_NAME}';\n`)
         options.imported = true
+        options.msa.prepend(`\nimport ${options.decimalPkgName} from '${PKG_NAME}';\n`)
       },
     },
     ExportDefaultDeclaration(path) {
@@ -59,13 +58,13 @@ export function traverseAst(options: Options, checkImport = true, templateImport
           return
         declaration = objectExpr
       }
-      const hasDataProperty = existDataProperty(declaration, options, decimalPkgName)
+      const hasDataProperty = existDataProperty(declaration, options)
       if (!hasDataProperty) {
         const insertPosition = declaration.start ?? 0 + 1
         const content = `
           \n
           data() {
-            this.${decimalPkgName} = ${decimalPkgName};
+            this.${options.decimalPkgName} = ${options.decimalPkgName};
           },
           \n
         `
@@ -73,27 +72,9 @@ export function traverseAst(options: Options, checkImport = true, templateImport
       }
     },
     ImportDeclaration(path) {
-      if (alreadyImported)
+      if (options.imported)
         return
-      if (path.node.source.value === PKG_NAME) {
-        alreadyImported = path.node.specifiers.some((spec) => {
-          if (spec.type === 'ImportDefaultSpecifier') {
-            if (spec.local.name !== DECIMAL_PKG_NAME) {
-              decimalPkgName = spec.local.name
-            }
-            return true
-          }
-          else if (spec.type === 'ImportNamespaceSpecifier') {
-            decimalPkgName = `${spec.local.name}.Decimal`
-            return true
-          }
-          else if (spec.imported.type === 'Identifier' && spec.imported.name !== DECIMAL_PKG_NAME) {
-            decimalPkgName = spec.local.name
-            return true
-          }
-          return false
-        }) ?? false
-      }
+      handleImportDeclaration(path, options)
     },
     JSXElement: path => innerComment(path, BLOCK_COMMENT),
     JSXOpeningElement: (path) => {
@@ -107,10 +88,10 @@ export function traverseAst(options: Options, checkImport = true, templateImport
         return
       innerComment(path)
     },
-    BinaryExpression: path => processBinary({ ...options, topLevel: true }, path, decimalPkgName),
+    BinaryExpression: path => processBinary({ ...options, initial: true }, path),
   }
 }
-function existDataProperty(declaration: ObjectExpression, options: Options, decimalPkgName: string) {
+function existDataProperty(declaration: ObjectExpression, options: Options) {
   const { properties } = declaration
   /**
    * 检查是否存在 data 函数, 仅支持 data 函数, 不支持 data 对象
@@ -133,8 +114,29 @@ function existDataProperty(declaration: ObjectExpression, options: Options, deci
     const returnStatement = body.body.find(item => item.type === 'ReturnStatement')
     if (!returnStatement)
       return false
-    const content = `\nthis.${decimalPkgName} = ${decimalPkgName};\n`
+    const content = `\nthis.${options.decimalPkgName} = ${options.decimalPkgName};\n`
     options.msa.prependLeft(returnStatement.start!, content)
     return true
   })
+}
+export function handleImportDeclaration(path: NodePath<ImportDeclaration>, options: Options) {
+  if (path.node.source.value === PKG_NAME) {
+    options.imported = path.node.specifiers.some((spec) => {
+      if (spec.type === 'ImportDefaultSpecifier') {
+        if (spec.local.name !== DECIMAL_PKG_NAME) {
+          options.decimalPkgName = spec.local.name
+        }
+        return true
+      }
+      else if (spec.type === 'ImportNamespaceSpecifier') {
+        options.decimalPkgName = `${spec.local.name}.Decimal`
+        return true
+      }
+      else if (spec.imported.type === 'Identifier' && spec.imported.name !== DECIMAL_PKG_NAME) {
+        options.decimalPkgName = spec.local.name
+        return true
+      }
+      return false
+    })
+  }
 }

@@ -15,9 +15,9 @@ import type {
   InterpolationNode,
   TemplateChildNode,
 } from '@vue/compiler-core'
-import type { TraverseOptions } from 'babel__traverse'
+import type { TraverseOptions } from '@babel/traverse'
 import type { AutoDecimalOptions, CommentState, Options } from '../types'
-import { traverseAst } from './traverse'
+import { handleImportDeclaration, traverseAst } from './traverse'
 import { BLOCK_COMMENT, DECIMAL_PKG_NAME, NEXT_COMMENT, OPERATOR_KEYS, PKG_NAME } from './constant'
 
 export function transformAutoDecimal(code: string, autoDecimalOptions?: AutoDecimalOptions) {
@@ -29,10 +29,26 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions?: AutoD
   const { descriptor } = sfcAst
   const { script, scriptSetup, template } = descriptor
   const msa = new MagicStringAST(code)
+  const getDecimalPkgName = (scriptSection: SFCScriptBlock | null) => {
+    if (!scriptSection)
+      return
+    const { decimalPkgName } = getTransformed(
+      scriptSection.content,
+      options => ({
+        ImportDeclaration: path => handleImportDeclaration(path, options),
+      }),
+      autoDecimalOptions,
+    )
+    return decimalPkgName
+  }
+  let decimalPkgName = getDecimalPkgName(scriptSetup)
+  if (!decimalPkgName) {
+    decimalPkgName = getDecimalPkgName(script)
+  }
   if (template) {
     const { ast, attrs = {} } = template
     if (!attrs['ad-ignore'] && ast?.children) {
-      parserTemplate(msa, ast.children)
+      parserTemplate(msa, ast.children, decimalPkgName ?? DECIMAL_PKG_NAME)
     }
   }
   let needsImport = msa.hasChanged()
@@ -80,6 +96,8 @@ export function getTransformed(
     autoDecimalOptions,
     imported: false,
     msa,
+    decimalPkgName: DECIMAL_PKG_NAME,
+    initial: false,
     shouldSkip: false,
   }
   // @ts-expect-error adapter cjs/esm
@@ -99,7 +117,7 @@ function existTargetOperator(content: string) {
 function shouldSkipComment(comment: CommentState, child: TemplateChildNode, property: 'next' | 'block' = 'next') {
   return comment[property] && comment.line + 1 === child.loc.start.line
 }
-function parserTemplate(msa: MagicStringAST, children: TemplateChildNode[]) {
+function parserTemplate(msa: MagicStringAST, children: TemplateChildNode[], decimalPkgName: string) {
   const commentState: CommentState = { line: 0, block: false, next: false }
   children.forEach((child) => {
     if (child.type === NodeTypes.TEXT)
@@ -113,16 +131,16 @@ function parserTemplate(msa: MagicStringAST, children: TemplateChildNode[]) {
 
     switch (child.type) {
       case NodeTypes.INTERPOLATION:
-        handleInterpolation(msa, child, commentState)
+        handleInterpolation(msa, child, commentState, decimalPkgName)
         break
       case NodeTypes.ELEMENT:
-        handleElementProps(msa, child, commentState)
+        handleElementProps(msa, child, commentState, decimalPkgName)
         break
       default:
         break
     }
     if (hasChildrenNode(child) && child.children) {
-      parserTemplate(msa, child.children as TemplateChildNode[])
+      parserTemplate(msa, child.children as TemplateChildNode[], decimalPkgName)
     }
   })
 }
@@ -137,7 +155,7 @@ function updateCommentState(commentState: CommentState, commentNode: CommentNode
   commentState.block = commentNode.content.includes(BLOCK_COMMENT)
   commentState.next = commentNode.content.includes(NEXT_COMMENT)
 }
-function handleInterpolation(msa: MagicStringAST, interpolationNode: InterpolationNode, commentState: CommentState) {
+function handleInterpolation(msa: MagicStringAST, interpolationNode: InterpolationNode, commentState: CommentState, decimalPkgName: string) {
   if (shouldSkipComment(commentState, interpolationNode))
     return
   if (interpolationNode.content.type === NodeTypes.COMPOUND_EXPRESSION)
@@ -147,11 +165,11 @@ function handleInterpolation(msa: MagicStringAST, interpolationNode: Interpolati
   if (!expContent || !existTargetOperator(expContent))
     return
 
-  const { msa: transformedMsa } = getTransformed(expContent, options => traverseAst(options, false))
+  const { msa: transformedMsa } = getTransformed(expContent, options => traverseAst({ ...options, decimalPkgName }, false))
 
   msa.update(interpolationNode.content.loc.start.offset, interpolationNode.content.loc.end.offset, transformedMsa.toString())
 }
-function handleElementProps(msa: MagicStringAST, elementNode: ElementNode, commentState: CommentState) {
+function handleElementProps(msa: MagicStringAST, elementNode: ElementNode, commentState: CommentState, decimalPkgName: string) {
   if (shouldSkipComment(commentState, elementNode))
     return
   if (!elementNode.props.length)
@@ -169,7 +187,7 @@ function handleElementProps(msa: MagicStringAST, elementNode: ElementNode, comme
     if (!canParserProp(prop))
       return
 
-    const { msa: transformedMsa } = getTransformed(content, options => traverseAst(options, false))
+    const { msa: transformedMsa } = getTransformed(content, options => traverseAst({ ...options, decimalPkgName }, false))
 
     msa.update(loc.start.offset, loc.end.offset, transformedMsa.toString())
   })

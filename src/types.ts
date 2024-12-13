@@ -1,11 +1,12 @@
-import type { FilterPattern } from 'vite'
 import type { MagicStringAST } from 'magic-string-ast'
 
 export interface Options {
   shouldSkip: boolean
   msa: MagicStringAST
   imported: boolean
+  decimalPkgName: string
   autoDecimalOptions?: AutoDecimalOptions
+  initial: boolean
 }
 
 export interface CommentState {

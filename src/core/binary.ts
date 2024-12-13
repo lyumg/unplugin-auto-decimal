@@ -6,7 +6,7 @@ import { BASE_COMMENT, LITERALS, OPERATOR, OPERATOR_KEYS } from './constant'
 import { getComments } from './comment'
 import { getTransformed } from './transform'
 
-export function processBinary(options: Options, path: NodePath<BinaryExpression>, decimalPkgName: string) {
+export function processBinary(options: Options, path: NodePath<BinaryExpression>) {
   const { node } = path
   const { left, operator, right } = node
   if (!OPERATOR_KEYS.includes(operator))
@@ -21,11 +21,11 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
     return
   }
   try {
-    const leftNode = extractNodeValue(left, options, decimalPkgName)
-    const rightNode = extractNodeValue(right, options, decimalPkgName)
+    const leftNode = extractNodeValue(left, options)
+    const rightNode = extractNodeValue(right, options)
     if (leftNode.shouldSkip || rightNode.shouldSkip)
       return
-    const content = createDecimalOperation(leftNode.msa, rightNode.msa, decimalPkgName, operator as Operator, options.topLevel)
+    const content = createDecimalOperation(leftNode.msa, rightNode.msa, operator as Operator, options)
     options.msa.overwriteNode(node, content)
     path.skip()
   }
@@ -54,19 +54,19 @@ function shouldIgnoreComments(path: NodePath<BinaryExpression>): boolean {
   const comments = getComments(path)
   return comments?.some(comment => comment.value.includes(BASE_COMMENT))
 }
-function createDecimalOperation(leftAst: MagicStringAST, rightAst: MagicStringAST, decimalPkgName: string, operator: Operator, topLevel?: boolean): string {
-  let leftContent = `new ${decimalPkgName}(${leftAst.toString()})`
+function createDecimalOperation(leftAst: MagicStringAST, rightAst: MagicStringAST, operator: Operator, options: Options): string {
+  let leftContent = `new ${options.decimalPkgName}(${leftAst.toString()})`
   if (leftAst.hasChanged()) {
     leftContent = `${leftAst.toString()}`
   }
   const generateContent = `${leftContent}.${OPERATOR[operator]}(${rightAst.toString()})`
-  return topLevel ? `${generateContent}.toNumber()` : generateContent
+  return options.initial ? `${generateContent}.toNumber()` : generateContent
 }
-function extractNodeValue(node: Node, options: Options, pkgName: string) {
+function extractNodeValue(node: Node, options: Options) {
   const codeSnippet = options.msa.snipNode(node).toString()
   return getTransformed(
     codeSnippet,
-    transOptions => ({ BinaryExpression: path => processBinary(transOptions, path, pkgName) }),
+    transOptions => ({ BinaryExpression: path => processBinary({ ...transOptions, decimalPkgName: options.decimalPkgName }, path) }),
     options.autoDecimalOptions,
   )
 }
