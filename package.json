@@ -1,7 +1,7 @@
 {
   "name": "unplugin-auto-decimal",
   "type": "module",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "packageManager": "pnpm@9.9.0",
   "description": "",
   "license": "MIT",
@@ -18,48 +18,111 @@
     "vite",
     "webpack",
     "rollup",
-    "transform"
+    "transform",
+    "auto",
+    "decimal",
+    "decimal.js"
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./astro": {
-      "import": "./dist/astro.js",
-      "require": "./dist/astro.cjs"
+      "import": {
+        "types": "./dist/astro.d.ts",
+        "default": "./dist/astro.js"
+      },
+      "require": {
+        "types": "./dist/astro.d.cts",
+        "default": "./dist/astro.cjs"
+      }
     },
     "./rspack": {
-      "import": "./dist/rspack.js",
-      "require": "./dist/rspack.cjs"
+      "import": {
+        "types": "./dist/rspack.d.ts",
+        "default": "./dist/rspack.js"
+      },
+      "require": {
+        "types": "./dist/rspack.d.cts",
+        "default": "./dist/rspack.cjs"
+      }
     },
     "./vite": {
-      "import": "./dist/vite.js",
-      "require": "./dist/vite.cjs"
+      "import": {
+        "types": "./dist/vite.d.ts",
+        "default": "./dist/vite.js"
+      },
+      "require": {
+        "types": "./dist/vite.d.cts",
+        "default": "./dist/vite.cjs"
+      }
     },
     "./webpack": {
-      "import": "./dist/webpack.js",
-      "require": "./dist/webpack.cjs"
+      "import": {
+        "types": "./dist/webpack.d.ts",
+        "default": "./dist/webpack.js"
+      },
+      "require": {
+        "types": "./dist/webpack.d.cts",
+        "default": "./dist/webpack.cjs"
+      }
     },
     "./rollup": {
-      "import": "./dist/rollup.js",
-      "require": "./dist/rollup.cjs"
+      "import": {
+        "types": "./dist/rollup.d.ts",
+        "default": "./dist/rollup.js"
+      },
+      "require": {
+        "types": "./dist/rollup.d.cts",
+        "default": "./dist/rollup.cjs"
+      }
     },
     "./esbuild": {
-      "import": "./dist/esbuild.js",
-      "require": "./dist/esbuild.cjs"
+      "import": {
+        "types": "./dist/esbuild.d.ts",
+        "default": "./dist/esbuild.js"
+      },
+      "require": {
+        "types": "./dist/esbuild.d.cts",
+        "default": "./dist/esbuild.cjs"
+      }
     },
     "./nuxt": {
-      "import": "./dist/nuxt.js",
-      "require": "./dist/nuxt.cjs"
+      "import": {
+        "types": "./dist/nuxt.d.ts",
+        "default": "./dist/nuxt.js"
+      },
+      "require": {
+        "types": "./dist/nuxt.d.cts",
+        "default": "./dist/nuxt.cjs"
+      }
     },
     "./farm": {
-      "import": "./dist/farm.js",
-      "require": "./dist/farm.cjs"
+      "import": {
+        "types": "./dist/farm.d.ts",
+        "default": "./dist/farm.js"
+      },
+      "require": {
+        "types": "./dist/farm.d.cts",
+        "default": "./dist/farm.cjs"
+      }
     },
     "./types": {
-      "import": "./dist/types.js",
-      "require": "./dist/types.cjs"
+      "import": {
+        "types": "./dist/types.d.ts",
+        "default": "./dist/types.js"
+      },
+      "require": {
+        "types": "./dist/types.d.cts",
+        "default": "./dist/types.cjs"
+      }
     },
     "./*": "./*"
   },
@@ -75,15 +138,17 @@
     }
   },
   "files": [
+    "*.d.ts",
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch src",
+    "build": "tsup src/*.ts --format cjs,esm --dts --splitting --clean",
+    "dev": "tsup src/*.ts --watch src",
     "build:fix": "esno scripts/postbuild.ts",
     "lint": "eslint .",
+    "typecheck": "tsc",
     "play": "npm -C playground run dev",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "nr build",
     "release": "bumpp && npm publish",
     "start": "esno src/index.ts",
     "test": "vitest"
@@ -121,13 +186,22 @@
     }
   },
   "dependencies": {
+    "@babel/parser": "7.23.6",
+    "@babel/traverse": "7.23.6",
+    "@babel/types": "7.23.6",
+    "@vue/compiler-core": "3.4.21",
+    "@vue/compiler-sfc": "3.4.21",
+    "local-pkg": "^0.5.1",
+    "magic-string-ast": "^0.6.3",
     "unplugin": "^1.12.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.0.0",
     "@nuxt/kit": "^3.13.0",
     "@nuxt/schema": "^3.13.0",
-    "@types/node": "^22.5.1",
+    "@types/babel__generator": "^7.6.8",
+    "@types/babel__traverse": "^7.20.4",
+    "@types/node": "^17.0.45",
     "bumpp": "^9.5.2",
     "chalk": "^5.3.0",
     "eslint": "^9.9.1",

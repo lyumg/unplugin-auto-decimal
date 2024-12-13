@@ -1,4 +1,4 @@
-import { createRspackPlugin } from 'unplugin'
-import { unpluginFactory } from '.'
+import type { AutoDecimalOptions } from './types'
+import unplugin from '.'
 
-export default createRspackPlugin(unpluginFactory)
+export default unplugin.rspack as (options?: AutoDecimalOptions) => any

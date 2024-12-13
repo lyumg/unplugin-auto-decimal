@@ -1,8 +1,8 @@
-import type { Options } from './types'
+import type { AutoDecimalOptions } from './types'
 
 import unplugin from '.'
 
-export default (options: Options): any => ({
+export default (options: AutoDecimalOptions): any => ({
   name: 'unplugin-auto-decimal',
   hooks: {
     'astro:config:setup': async (astro: any) => {

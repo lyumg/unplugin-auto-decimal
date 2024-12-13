@@ -1,4 +1,4 @@
-import { createFarmPlugin } from 'unplugin'
-import { unpluginFactory } from '.'
+import type { AutoDecimalOptions } from './types'
+import unplugin from '.'
 
-export default createFarmPlugin(unpluginFactory)
+export default unplugin.farm as (options?: AutoDecimalOptions) => any

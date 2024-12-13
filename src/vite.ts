@@ -1,4 +1,4 @@
-import { createVitePlugin } from 'unplugin'
-import { unpluginFactory } from '.'
+import type { AutoDecimalOptions } from './types'
+import unplugin from '.'
 
-export default createVitePlugin(unpluginFactory)
+export default unplugin.vite as (options?: AutoDecimalOptions) => any

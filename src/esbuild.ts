@@ -1,4 +1,4 @@
-import { createEsbuildPlugin } from 'unplugin'
-import { unpluginFactory } from '.'
+import type { AutoDecimalOptions } from './types'
+import unplugin from '.'
 
-export default createEsbuildPlugin(unpluginFactory)
+export default unplugin.esbuild as (options?: AutoDecimalOptions) => any

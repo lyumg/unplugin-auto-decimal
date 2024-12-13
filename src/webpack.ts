@@ -1,4 +1,4 @@
-import { createWebpackPlugin } from 'unplugin'
-import { unpluginFactory } from '.'
+import type { AutoDecimalOptions } from './types'
+import unplugin from '.'
 
-export default createWebpackPlugin(unpluginFactory)
+export default unplugin.webpack as (options?: AutoDecimalOptions) => any

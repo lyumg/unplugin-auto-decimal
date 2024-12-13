@@ -1,24 +1,16 @@
 import { addVitePlugin, addWebpackPlugin, defineNuxtModule } from '@nuxt/kit'
-import vite from './vite'
-import webpack from './webpack'
-import type { Options } from './types'
+import type { AutoDecimalOptions } from './types'
+import unplugin from '.'
 import '@nuxt/schema'
 
-export interface ModuleOptions extends Options {
+export interface ModuleOptions extends AutoDecimalOptions {
 
 }
 
 export default defineNuxtModule<ModuleOptions>({
-  meta: {
-    name: 'nuxt-unplugin-auto-decimal',
-    configKey: 'unpluginStarter',
-  },
-  defaults: {
-    // ...default options
-  },
   setup(options, _nuxt) {
-    addVitePlugin(() => vite(options))
-    addWebpackPlugin(() => webpack(options))
+    addVitePlugin(() => unplugin.vite(options))
+    addWebpackPlugin(() => unplugin.webpack(options))
 
     // ...
   },
