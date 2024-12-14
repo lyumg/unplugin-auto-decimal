@@ -16,7 +16,7 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
     path.skip()
     return
   }
-  if (isStringSplicing(node, options) || needPatchZero(node, options)) {
+  if (isStringSplicing(node, options) || tailPatchZero(node, options)) {
     options.shouldSkip = true
     path.skip()
     return
@@ -36,13 +36,13 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   }
 }
 
-function needPatchZero(node: BinaryExpression, options: Options) {
+function tailPatchZero(node: BinaryExpression, options: Options) {
   const { left, operator, right } = node
   if (operator !== '+')
     return false
   if (isNumericLiteral(left) && isNumericLiteral(right))
     return false
-  if (!options.autoDecimalOptions?.patchZero)
+  if (!options.autoDecimalOptions?.tailPatchZero)
     return false
   if (options.initial && (!isNumericLiteral(right) || right.value !== 0))
     return true

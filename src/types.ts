@@ -17,7 +17,7 @@ export interface CommentState {
 
 export interface AutoDecimalOptions {
   supportString?: boolean
-  patchZero?: boolean
+  tailPatchZero?: boolean
 }
 
 type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U

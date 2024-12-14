@@ -1,7 +1,7 @@
 import { isPackageExists } from 'local-pkg'
-import type { NodePath } from '@babel/traverse'
+import type { NodePath, TraverseOptions } from '@babel/traverse'
+import { isBlockStatement, isCallExpression, isFunctionExpression, isIdentifier, isImportDefaultSpecifier, isImportNamespaceSpecifier, isJSXEmptyExpression, isObjectExpression, isObjectMethod, isObjectProperty, isReturnStatement, isSpreadElement } from '@babel/types'
 import type { File, FunctionExpression, ImportDeclaration, ObjectExpression } from '@babel/types'
-import type { TraverseOptions } from 'babel__traverse'
 import type { Options } from '../types'
 import { processBinary } from './binary'
 import { blockComment, innerComment, nextComment } from './comment'
@@ -49,12 +49,12 @@ export function traverseAst(options: Options, checkImport = true, templateImport
       if (!templateImport)
         return
       let { declaration } = path.node
-      if (declaration.type !== 'ObjectExpression' && declaration.type !== 'CallExpression')
+      if (!isObjectExpression(declaration) && !isCallExpression(declaration))
         return
-      if (declaration.type === 'CallExpression') {
+      if (isCallExpression(declaration)) {
         const { arguments: args } = declaration
         const [objectExpr] = args
-        if (!objectExpr || objectExpr.type !== 'ObjectExpression')
+        if (!objectExpr || !isObjectExpression(objectExpr))
           return
         declaration = objectExpr
       }
@@ -84,7 +84,7 @@ export function traverseAst(options: Options, checkImport = true, templateImport
       innerComment(path)
     },
     JSXExpressionContainer: (path) => {
-      if (path.node.expression.type === 'JSXEmptyExpression')
+      if (isJSXEmptyExpression(path.node.expression))
         return
       innerComment(path)
     },
@@ -100,18 +100,18 @@ function existDataProperty(declaration: ObjectExpression, options: Options) {
    * }
    */
   return properties.some((prop) => {
-    if (prop.type === 'SpreadElement')
+    if (isSpreadElement(prop))
       return false
-    if (prop.type === 'ObjectProperty' && prop.value.type !== 'FunctionExpression')
+    if (isObjectProperty(prop) && !isFunctionExpression(prop.value))
       return false
-    if (prop.key.type !== 'Identifier' || (prop.key.type === 'Identifier' && prop.key.name !== 'data'))
-      return false
-
-    const body = prop.type === 'ObjectMethod' ? prop.body : (prop.value as FunctionExpression).body
-    if (body.type !== 'BlockStatement')
+    if (!isIdentifier(prop.key) || (isIdentifier(prop.key) && prop.key.name !== 'data'))
       return false
 
-    const returnStatement = body.body.find(item => item.type === 'ReturnStatement')
+    const body = isObjectMethod(prop) ? prop.body : (prop.value as FunctionExpression).body
+    if (!isBlockStatement(body))
+      return false
+
+    const returnStatement = body.body.find(item => isReturnStatement(item))
     if (!returnStatement)
       return false
     const content = `\nthis.${options.decimalPkgName} = ${options.decimalPkgName};\n`
@@ -122,17 +122,17 @@ function existDataProperty(declaration: ObjectExpression, options: Options) {
 export function handleImportDeclaration(path: NodePath<ImportDeclaration>, options: Options) {
   if (path.node.source.value === PKG_NAME) {
     options.imported = path.node.specifiers.some((spec) => {
-      if (spec.type === 'ImportDefaultSpecifier') {
+      if (isImportDefaultSpecifier(spec)) {
         if (spec.local.name !== DECIMAL_PKG_NAME) {
           options.decimalPkgName = spec.local.name
         }
         return true
       }
-      else if (spec.type === 'ImportNamespaceSpecifier') {
+      else if (isImportNamespaceSpecifier(spec)) {
         options.decimalPkgName = `${spec.local.name}.Decimal`
         return true
       }
-      else if (spec.imported.type === 'Identifier' && spec.imported.name !== DECIMAL_PKG_NAME) {
+      else if (isIdentifier(spec.imported) && spec.imported.name !== DECIMAL_PKG_NAME) {
         options.decimalPkgName = spec.local.name
         return true
       }

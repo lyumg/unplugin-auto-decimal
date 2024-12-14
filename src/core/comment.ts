@@ -1,4 +1,5 @@
 import type { NodePath } from '@babel/traverse'
+import { isJSXElement, isJSXEmptyExpression, isJSXExpressionContainer, isJSXOpeningElement } from '@babel/types'
 import { BASE_COMMENT, BLOCK_COMMENT, NEXT_COMMENT } from './constant'
 
 export function getComments(path: NodePath) {
@@ -22,21 +23,21 @@ function skipAutoDecimalComment(path: NodePath, igc: string, isJSX = false) {
   let comments
   const rawPath = path
   if (isJSX) {
-    if (path.node.type === 'JSXOpeningElement') {
+    if (isJSXOpeningElement(path.node)) {
       path = path.parentPath!
     }
     let prevPath = path.getPrevSibling()
     if (!prevPath.node)
       return
-    while (prevPath.type !== 'JSXExpressionContainer') {
+    while (!isJSXExpressionContainer(prevPath.node)) {
       prevPath = prevPath.getPrevSibling()
-      if (!prevPath.node || prevPath.node.type === 'JSXElement')
+      if (!prevPath.node || isJSXElement(prevPath.node))
         return
     }
-    if (prevPath.node.type !== 'JSXExpressionContainer')
+    if (!isJSXExpressionContainer(prevPath.node))
       return
     const { expression } = prevPath.node
-    if (expression.type === 'JSXEmptyExpression') {
+    if (isJSXEmptyExpression(expression)) {
       comments = expression.innerComments ?? []
     }
   }
