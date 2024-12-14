@@ -4,6 +4,7 @@ export const NEXT_COMMENT = `next-${BASE_COMMENT}`
 export const FILE_COMMENT = `file-${BASE_COMMENT}`
 export const BLOCK_COMMENT = `block-${BASE_COMMENT}`
 export const COMMENTS = [BASE_COMMENT, NEXT_COMMENT]
+export const PATCH_DECLARATION = 'const __PATCH_DECLARATION__ = '
 export const LITERALS = ['StringLiteral', 'NullLiteral', 'BooleanLiteral', 'TemplateLiteral']
 export const OPERATOR = {
   '+': 'add',
