@@ -16,7 +16,7 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
     path.skip()
     return
   }
-  if (isStringSplicing(node, options) || tailPatchZero(node, options)) {
+  if (isStringSplicing(node, options) || mustTailPatchZero(node, options)) {
     options.shouldSkip = true
     path.skip()
     return
@@ -36,7 +36,7 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   }
 }
 
-function tailPatchZero(node: BinaryExpression, options: Options) {
+function mustTailPatchZero(node: BinaryExpression, options: Options) {
   const { left, operator, right } = node
   if (operator !== '+')
     return false

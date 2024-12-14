@@ -94,7 +94,11 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions?: AutoD
     if (!expContent || !existTargetOperator(expContent))
       return
 
-    const { msa: transformedMsa } = getTransformed(expContent, options => traverseAst({ ...options, decimalPkgName }, false))
+    const { msa: transformedMsa } = getTransformed(
+      expContent,
+      options => traverseAst({ ...options, decimalPkgName }, false),
+      autoDecimalOptions,
+    )
 
     msa.update(interpolationNode.content.loc.start.offset, interpolationNode.content.loc.end.offset, transformedMsa.toString())
   }
@@ -121,7 +125,11 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions?: AutoD
         isObjExpr = true
         content = `${PATCH_DECLARATION}${content}`
       }
-      const { msa: transformedMsa } = getTransformed(content, options => traverseAst({ ...options, decimalPkgName }, false))
+      const { msa: transformedMsa } = getTransformed(
+        content,
+        options => traverseAst({ ...options, decimalPkgName }, false),
+        autoDecimalOptions,
+      )
       if (isObjExpr) {
         transformedMsa.remove(0, PATCH_DECLARATION.length)
       }
