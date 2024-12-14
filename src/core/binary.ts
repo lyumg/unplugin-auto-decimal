@@ -1,6 +1,7 @@
-import type { Node, NodePath } from 'babel__traverse'
+import type { Node, NodePath } from '@babel/traverse'
 import type { BinaryExpression, StringLiteral } from '@babel/types'
 import type { MagicStringAST } from 'magic-string-ast'
+import { isNumericLiteral } from '@babel/types'
 import type { Operator, Options } from '../types'
 import { BASE_COMMENT, LITERALS, OPERATOR, OPERATOR_KEYS } from './constant'
 import { getComments } from './comment'
@@ -15,12 +16,13 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
     path.skip()
     return
   }
-  if (isStringSplicing(node, options)) {
+  if (isStringSplicing(node, options) || needPatchZero(node, options)) {
     options.shouldSkip = true
     path.skip()
     return
   }
   try {
+    // FIXME 当左右都时数字时, 可跳过ast
     const leftNode = extractNodeValue(left, options)
     const rightNode = extractNodeValue(right, options)
     if (leftNode.shouldSkip || rightNode.shouldSkip)
@@ -34,9 +36,22 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   }
 }
 
+function needPatchZero(node: BinaryExpression, options: Options) {
+  const { left, operator, right } = node
+  if (operator !== '+')
+    return false
+  if (isNumericLiteral(left) && isNumericLiteral(right))
+    return false
+  if (!options.autoDecimalOptions?.patchZero)
+    return false
+  if (options.initial && (!isNumericLiteral(right) || right.value !== 0))
+    return true
+}
 function isStringSplicing(node: BinaryExpression, options: Options) {
   const { left, operator, right } = node
   if (operator !== '+')
+    return false
+  if (isNumericLiteral(left) && isNumericLiteral(right))
     return false
   return [left, right].some(operand => LITERALS.includes(operand.type) && isNonNumericLiteral(operand, options))
 }
