@@ -1,0 +1,23 @@
+{
+  "name": "example-vue-cli-vue2",
+  "private": true,
+  "scripts": {
+    "build": "vue-cli-service build",
+    "dev": "vue-cli-service serve",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "@vue/composition-api": "^1.7.2",
+    "core-js": "^3.39.0",
+    "vue": "^2.7.16"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^5.0.8",
+    "@vue/cli-plugin-typescript": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
+    "typescript": "^5.7.2",
+    "unplugin-icons": "^0.20.2",
+    "unplugin-auto-decimal": "workspace:*",
+    "unplugin-vue2-script-setup": "^0.11.4"
+  }
+}
