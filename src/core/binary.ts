@@ -47,7 +47,7 @@ function isNonNumericLiteral(node: Node, options: Options) {
     return true
   const { value } = node as StringLiteral
   const { supportString = true } = options.autoDecimalOptions || {}
-  const isString = supportString ? Number.isNaN(Number(value)) : node.type === 'StringLiteral'
+  const isString = supportString ? Number.isNaN(Number(value)) : ['StringLiteral', 'TemplateLiteral'].includes(node.type)
   return node.type === 'BooleanLiteral' || isString || value.trim() === ''
 }
 function shouldIgnoreComments(path: NodePath<BinaryExpression>): boolean {
