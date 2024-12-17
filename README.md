@@ -11,10 +11,10 @@
     <img src="https://img.shields.io/npm/v/decimal.js-light?color=a1b858&label=decimaljs-light"/>
   </a>
 </div>
-⚡️ 支持 Vue、React、Vite、Typescript
+⚡️ 支持 Vue、React
 
 ## 功能
-将代码中的加、减、乘、除运算自动转为 Decimal 方法，用于处理 Javascript 中运算所造成的精度问题
+将代码中的加、减、乘、除运算自动转为 `decimal.js` 方法，用于处理 JavaScript 中运算所造成的精度问题
 
 ## 安装
 
@@ -31,9 +31,40 @@ AutoDecimal({
   /**
    * 字段串类型是否支持转换
    * 默认 true，仅将可以转换为数字的字符串进行运算，如果无法转换为一个数字的话，则跳过
+   * 同时，你的项目中所有的数字字符串拼接将都会按照数字进行计算了  •̀֊•́  
    * false 时，包含字符串的计算表达式都将被忽略
    */
-  supportString: true
+  supportString: true,
+  /**
+   * 新项目可以不用理会，字符串拼接一律使用字符串模板来实现就可以了，eslint `prefer-template`
+   * 即使使用了 "+" 来拼接的话，也不用怕，因为会报错的......
+   * 
+   * 所以这个参数主要是为了历史项目中想要使用该插件而提供的
+   * 很多时候我们会使用 "+" 进行字符串拼接，但是插件是无法识别这是拼接还是加法计算的
+   * @example 
+   * let content = '...'
+   * if (...) {
+   *  content = content + otherContent
+   * }
+   * 因为 JavaScript 的灵活性，像上面这种情况就无法判断是加法计算还是字符串拼接了。
+   * 所以参数的意义在于，当使用 "+" 时，如果 "+" 两边，有任意边不是数字则不进行转换
+   * @example
+   * const a = 0.1
+   * const b = a + 0.2
+   * 那么 b = 0.30000000000000004
+   * 无论多么复杂的计算，只要末位是 "+" 运算的话，都不会转换
+   * @example
+   * const result = 1 - 0.9 + 0.05 + 0.05
+   * 那么 result = 0.19999999999999996
+   * 变换一下 
+   * const result = 1 - 0.9 + 0.15 - 0.05
+   * 那么 result = 0.2
+   * 所以如果想要在 tailPatchZero: true 的情况下，进行计算的话，只需要末位 + 0 即可
+   * @example
+   * const result = 1 - 0.9 + 0.05 + 0.05 + 0
+   * 那么 result = 0.2
+   */
+  tailPatchZero: true
 })
 ```
 
@@ -100,7 +131,7 @@ export default defineConfig({
 ### 禁用转换
 有的时候，有些计算是不需要转换的。那么要如何跳过某个计算表达式或者全部跳过呢？
 
-- 添加相应的注释（只要注释中包含指定内容即可, `jsx` 中需要注意, 在表达式中可能需要使用 Javascript 注释）
+- 添加相应的注释（只要注释中包含指定内容即可, `jsx` 中需要注意, 在表达式中可能需要使用 JavaScript 注释）
 - 添加 `ad-ignore` prop
 - `supportString: true`时, 末尾拼接一个空字符串
 - `supportString: false`时, 末尾拼接任意字符串
@@ -263,9 +294,9 @@ render() {
     </OtherComponent>
     {
       list.map(item => {
-        {/* 这里要注意使用 Javascript 中的注释形式, 不能使用 jsx 中的注释形式 */}
-        {/* 这里要注意使用 Javascript 中的注释形式, 不能使用 jsx 中的注释形式 */}
-        {/* 这里要注意使用 Javascript 中的注释形式, 不能使用 jsx 中的注释形式 */}
+        {/* 这里要注意使用 JavaScript 中的注释形式, 不能使用 jsx 中的注释形式 */}
+        {/* 这里要注意使用 JavaScript 中的注释形式, 不能使用 jsx 中的注释形式 */}
+        {/* 这里要注意使用 JavaScript 中的注释形式, 不能使用 jsx 中的注释形式 */}
 
         {/* 所以这种是不生效的 next-ad-ignore */}
         const sum = 0.1 + 0.2
@@ -279,4 +310,4 @@ render() {
 ```
 ## License
 
-[MIT](./LICENSE) License © 2024-PRESENT [很久以前](https://github.com/lx11573)
+[MIT](./LICENSE) License © 2024-PRESENT [很久以前](https://github.com/lyumg)
