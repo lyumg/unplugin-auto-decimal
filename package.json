@@ -161,7 +161,9 @@
     "play": "npm -C playground run dev",
     "release": "bumpp && npm publish",
     "start": "esno src/index.ts",
-    "test": "vitest"
+    "test": "vitest",
+    "prepublishOnly": "node scripts/switch-readme.cjs prepare",
+    "postpublish": "node scripts/switch-readme.cjs restore"
   },
   "peerDependencies": {
     "@farmfe/core": ">=1",
