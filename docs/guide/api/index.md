@@ -6,6 +6,6 @@
 
 | 属性               | 描述     | 类型     | 默认值     | 
 | ----------------  | :------: | :------: |:------: |
-| [`tailPatchZero`](./api/tail-patch-zero.md) | 区分计算表达式和字符串拼接 | boolean | false | 
-| [`supportString`](./api/support-string.md) | 支持字符串计算 | boolean | false |
+| [`tailPatchZero`](./tail-patch-zero.md) | 区分计算表达式和字符串拼接 | boolean | false | 
+| [`supportString`](./support-string.md) | 支持字符串计算 | boolean | false |
 | package | 高精度计算库 | `decimal.js`、`decimal.js-light`、`big.js` | `decimal.js-light` |
