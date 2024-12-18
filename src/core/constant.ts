@@ -7,10 +7,10 @@ export const COMMENTS = [BASE_COMMENT, NEXT_COMMENT]
 export const PATCH_DECLARATION = 'const __PATCH_DECLARATION__ = '
 export const LITERALS = ['StringLiteral', 'NullLiteral', 'BooleanLiteral', 'TemplateLiteral']
 export const OPERATOR = {
-  '+': 'add',
+  '+': 'plus',
+  '-': 'minus',
+  '*': 'times',
   '/': 'div',
-  '-': 'sub',
-  '*': 'mul',
 }
 
 export const OPERATOR_KEYS = Object.keys(OPERATOR)

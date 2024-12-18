@@ -18,12 +18,6 @@ export interface CommentState {
 export interface AutoDecimalOptions {
   supportString?: boolean
   tailPatchZero?: boolean
+  package?: 'decimal.js' | 'decimal.js-light' | 'big.js'
 }
-
-type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U
-
-export type OptionsResolved = Overwrite<
-  Required<AutoDecimalOptions>,
-  Pick<AutoDecimalOptions, 'supportString'>
->
 export type Operator = '+' | '-' | '*' | '/'

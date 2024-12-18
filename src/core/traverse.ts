@@ -38,11 +38,12 @@ export function traverseAst(options: Options, checkImport = true, templateImport
         if (!checkImport || options.imported || (!options.msa.hasChanged() && !templateImport)) {
           return
         }
-        if (!isPackageExists(PKG_NAME)) {
-          throw new Error(`[Auto Decimal] You will need to install ${PKG_NAME}: "npm install ${PKG_NAME}"`)
+        const pkgName = options.autoDecimalOptions?.package ?? PKG_NAME
+        if (!isPackageExists(pkgName)) {
+          throw new Error(`[Auto Decimal] You will need to install ${pkgName}: "npm install ${pkgName}"`)
         }
         options.imported = true
-        options.msa.prepend(`\nimport ${options.decimalPkgName} from '${PKG_NAME}';\n`)
+        options.msa.prepend(`\nimport ${options.decimalPkgName} from '${pkgName}';\n`)
       },
     },
     ExportDefaultDeclaration(path) {

@@ -21,7 +21,9 @@
     "transform",
     "auto",
     "decimal",
-    "decimal.js"
+    "decimal.js",
+    "decimal.js-light",
+    "big.js"
   ],
   "exports": {
     ".": {
