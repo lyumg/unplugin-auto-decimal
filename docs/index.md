@@ -5,7 +5,6 @@ layout: home
 hero:
   name: "Auto Decimal"
   text: "一个将 JavaScript 中的基本运算自动转换成 decimal.js 方法的插件"
-  # tagline: My great project tagline
   actions:
     - theme: brand
       text: 什么是 Auto Decimal？
@@ -14,9 +13,9 @@ hero:
       text: 快速开始
       link: /guide/getting-started
 features:
-  - title: 
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: 基于 Unplugin
+    details: 支持Vite， Rollup, Webpack, Esbuild，以及基于之上构建的所有框架。
+  - title: 自动转换
+    details: 免除所有手动的烦恼，使你的代码更完美
 ---
 
