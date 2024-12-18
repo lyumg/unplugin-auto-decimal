@@ -5,13 +5,13 @@
   "packageManager": "pnpm@9.9.0",
   "description": "",
   "license": "MIT",
-  "homepage": "https://github.com/antfu/unplugin-auto-decimal#readme",
+  "homepage": "https://github.com/lyumg/unplugin-auto-decimal#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/antfu/unplugin-auto-decimal.git"
+    "url": "git+https://github.com/lyumg/unplugin-auto-decimal.git"
   },
   "bugs": {
-    "url": "https://github.com/antfu/unplugin-auto-decimal/issues"
+    "url": "https://github.com/lyumg/unplugin-auto-decimal/issues"
   },
   "keywords": [
     "unplugin",
