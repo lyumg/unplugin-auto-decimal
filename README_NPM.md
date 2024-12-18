@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="./docs/public/logo.svg" width="200px" />
-</p>
-
 <h1 align="center" style="margin-top: -10px">Auto Decimal</h1>
 <div align="center" style="margin-bottom:10px">
   <a href="https://www.npmjs.com/package/unplugin-auto-decimal">
