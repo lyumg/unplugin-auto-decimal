@@ -79,7 +79,7 @@ module.exports = {
 module.exports = {
   configureWebpack: {
     plugins: [
-      require('unplugin-starter/webpack')({
+      require('unplugin-auto-decimal/webpack')({
         /* options */
       }),
     ],
