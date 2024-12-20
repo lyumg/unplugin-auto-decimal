@@ -30,7 +30,7 @@ console.log(c, '0.30000000000000004')
 
 // 通过末位补 0 , 告诉 Auto Decimal 它是可以转换的
 const d = a + b + 0
-console.log(c, '0.3')
+console.log(d, '0.3')
 
 // 当然这种是不需要 + 0 的
 const e = 0.1 + 0.2
