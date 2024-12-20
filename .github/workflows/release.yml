@@ -2,23 +2,38 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
+    name: Release
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
+      actions: write
+      pull-requests: write
+      statuses: write
       contents: write
+      issues: write
+      security-events: write
+      pages: read
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repo
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
-      - run: npx changelogithub
+      - run: npm publish --provenance --access public
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

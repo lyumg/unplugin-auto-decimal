@@ -16,11 +16,6 @@ export default defineConfig({
     },
     lastUpdated: {
       text: '最后更新于',
-      formatOptions: {
-        hourCycle: 'h24',
-        dateStyle: 'full',
-        hour: '2-digit',
-      },
     },
 
     sidebar: [
