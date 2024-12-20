@@ -159,7 +159,7 @@
     "lint": "eslint .",
     "typecheck": "tsc",
     "play": "npm -C playground run dev",
-    "release": "bumpp && npm publish",
+    "release": "bumpp",
     "start": "esno src/index.ts",
     "test": "vitest",
     "prepublishOnly": "node scripts/switch-readme.cjs prepare",
