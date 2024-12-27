@@ -9,12 +9,12 @@ export default defineComponent({
     return (
       <div>test-jsx-num:{ this.num } 
         <span>
-          { this.$slots.default()}
+          slot =&gt;{ this.$slots.default?.()}
         </span>
-        <div>自己的:<br/>
-          {/* next-ad-ignore */}
-          16: { 0.1 + 0.2 } 17: { 0.1 + 0.2 }
-          </div>
+        <div title={0.1 + 0.2}>自己的:<br/>
+          {/* block-ad-ignore */}
+          jsx first =&gt; { 0.1 + 0.2 }<span title={0.1 + 0.2} style="color:red;">span =&gt;{0.1 + 0.2}</span> jsx second =&gt; { 0.1 + 0.2 }
+        </div>
       </div>
     )
   }

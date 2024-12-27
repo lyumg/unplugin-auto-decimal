@@ -1,11 +1,12 @@
 <template>
 	<div>
-    <div :title="0.1+0.2"> a:{{ 0.1 + 0.2 }} b:{{ 0.1 + 0.2 }}</div>
-		<test>{{ 0.1 + 0.2 }}</test>
-		<testJsx>
-			<!-- next-ad-ignore -->
-			{{ 0.1 + 0.2 }} <span>span: {{ 0.1 + 0.2 }}</span> {{ 0.1 + 0.2 }}
-		</testJsx>
+    <div :title="0.1+0.2">自己的:<br/>
+			<!-- block-ad-ignore -->
+			first => {{ 0.1 + 0.2 }}<span :title="0.1 + 0.2" style="color:red;">span => {{ 0.1 + 0.2 }}</span> second => {{ 0.1 + 0.2 }}
+		</div>
+		<br />
+		<!-- <test>{{ 0.1 + 0.2 }}</test> -->
+		<testJsx></testJsx>
 	</div>
 </template> 
 <script>
