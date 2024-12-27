@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
+    "@vue/babel-plugin-jsx": "^1.2.5",
     "@vue/cli-plugin-babel": "~5.0.8",
     "@vue/cli-service": "~5.0.8",
     "unplugin-auto-decimal": "workspace:*"
