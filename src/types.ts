@@ -5,8 +5,9 @@ export interface Options {
   msa: MagicStringAST
   imported: boolean
   decimalPkgName: string
-  autoDecimalOptions?: AutoDecimalOptions
   initial: boolean
+  isOwnBinaryExpression?: boolean
+  autoDecimalOptions?: AutoDecimalOptions
 }
 
 export interface CommentState {

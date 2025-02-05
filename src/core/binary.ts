@@ -21,8 +21,18 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
     path.skip()
     return
   }
+  // 两边都是数字时, 直接转换成 Decimal
+  if (isNumericLiteral(left) && isNumericLiteral(right) && OPERATOR_KEYS.includes(operator)) {
+    const decimalParts: Array<string | number> = [`new ${options.decimalPkgName}(${left.value})`]
+    decimalParts.push(`.${OPERATOR[operator as Operator]}(${right.value})`)
+    if (!options.isOwnBinaryExpression) {
+      decimalParts.push('.toNumber()')
+    }
+    options.msa.overwriteNode(node, decimalParts.join(''))
+    path.skip()
+    return
+  }
   try {
-    // FIXME 当左右都时数字时, 可跳过ast
     const leftNode = extractNodeValue(left, options)
     const rightNode = extractNodeValue(right, options)
     if (leftNode.shouldSkip || rightNode.shouldSkip)
@@ -81,7 +91,13 @@ function extractNodeValue(node: Node, options: Options) {
   const codeSnippet = options.msa.snipNode(node).toString()
   return getTransformed(
     codeSnippet,
-    transOptions => ({ BinaryExpression: path => processBinary({ ...transOptions, decimalPkgName: options.decimalPkgName }, path) }),
+    transOptions => ({
+      BinaryExpression: path => processBinary({
+        ...transOptions,
+        decimalPkgName: options.decimalPkgName,
+        isOwnBinaryExpression: true,
+      }, path),
+    }),
     options.autoDecimalOptions,
   )
 }
