@@ -2,10 +2,9 @@ import { resolve } from 'node:path'
 import { promises as fs } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import fastGlob from 'fast-glob'
-import { createContext } from '../src/core/context'
+import { transform } from '../src/core/unplugin'
 
 describe('transform', async () => {
-  const ctx = createContext({ supportString: true })
   const root = resolve(__dirname, 'fixtures')
   const files = await fastGlob('*setup.vue', {
     cwd: root,
@@ -13,16 +12,16 @@ describe('transform', async () => {
   })
   for (const file of files) {
     const fixture = await fs.readFile(resolve(root, file), 'utf-8')
-    const transformedCode = (await ctx.transform(fixture, file))?.code ?? fixture
+    const transformedCode = (await transform(fixture, file, { supportString: true }))?.code ?? fixture
 
     it(`
       vue.setup
       input: 
         const sum = ref(0.1 + 0.2)
       output:
-        const sum = ref(new __Decimal(0.1).add(0.2).toNumber())
+        const sum = ref(new __Decimal(0.1).plus(0.2).toNumber())
       `, () => {
-      expect(transformedCode).toMatch('sum = ref(new __Decimal(0.1).add(0.2).toNumber())')
+      expect(transformedCode).toMatch('sum = ref(new __Decimal(0.1).plus(0.2).toNumber())')
     })
     it(`
       vue.setup next-ad-ignore
@@ -59,9 +58,9 @@ describe('transform', async () => {
       input:
         <div>transformed:{{ obj.a }} {{ 0.1 + 0.2 }}</div>
       output:
-        <div>transformed:{{ obj.a }} {{ new __Decimal(0.1).add(0.2).toNumber() }}</div>
+        <div>transformed:{{ obj.a }} {{ new __Decimal(0.1).plus(0.2).toNumber() }}</div>
       `, () => {
-      expect(transformedCode).toMatch('<div>transformed:{{ obj.a }} {{ new __Decimal(0.1).add(0.2).toNumber() }}</div>')
+      expect(transformedCode).toMatch('<div>transformed:{{ obj.a }} {{ new __Decimal(0.1).plus(0.2).toNumber() }}</div>')
     })
     it(`
       vue.setup template next-ad-ignore
@@ -84,11 +83,11 @@ describe('transform', async () => {
       output:
         <!-- next-ad-ignore -->
         <p :skip-title="(0.1 + 0.2).toString()">
-          next-ad-ignore transform: {{ new __Decimal(0.1).add(0.2).toNumber() }}
+          next-ad-ignore transform: {{ new __Decimal(0.1).plus(0.2).toNumber() }}
         </p>
       `, () => {
       expect(transformedCode).toMatch('next-ad-ignore:{{ 0.1 + 0.2 }}')
-      expect(transformedCode).toMatch('next-ad-ignore transform: {{ new __Decimal(0.1).add(0.2).toNumber() }}')
+      expect(transformedCode).toMatch('next-ad-ignore transform: {{ new __Decimal(0.1).plus(0.2).toNumber() }}')
     })
     it(`
       vue.setup template next-ad-ignore multiple
@@ -110,10 +109,10 @@ describe('transform', async () => {
       output:
         <!-- next-ad-ignore -->
         next-ad-ignore multiple skip:{{ 0.1 + 0.2 }}
-        next-ad-ignore multiple transform: {{ new __Decimal(1).sub(0.9).toNumber() }}
+        next-ad-ignore multiple transform: {{ new __Decimal(1).minus(0.9).toNumber() }}
       `, () => {
       expect(transformedCode).toMatch('next-ad-ignore multiple skip:{{ 0.1 + 0.2 }}')
-      expect(transformedCode).toMatch('next-ad-ignore multiple transform: {{ new __Decimal(1).sub(0.9).toNumber() }}')
+      expect(transformedCode).toMatch('next-ad-ignore multiple transform: {{ new __Decimal(1).minus(0.9).toNumber() }}')
     })
     it(`
       vue.setup template block-ad-ignore
