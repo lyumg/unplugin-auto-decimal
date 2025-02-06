@@ -25,7 +25,7 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   if (isNumericLiteral(left) && isNumericLiteral(right) && OPERATOR_KEYS.includes(operator)) {
     const decimalParts: Array<string | number> = [`new ${options.decimalPkgName}(${left.value})`]
     decimalParts.push(`.${OPERATOR[operator as Operator]}(${right.value})`)
-    if (!options.isOwnBinaryExpression) {
+    if (options.initial) {
       decimalParts.push('.toNumber()')
     }
     options.msa.overwriteNode(node, decimalParts.join(''))
@@ -52,7 +52,7 @@ function mustTailPatchZero(node: BinaryExpression, options: Options) {
     return false
   if (isNumericLiteral(left) && isNumericLiteral(right))
     return false
-  if (!options.autoDecimalOptions?.tailPatchZero)
+  if (!options.autoDecimalOptions.tailPatchZero)
     return false
   if (options.initial && (!isNumericLiteral(right) || right.value !== 0))
     return true
@@ -71,7 +71,7 @@ function isNonNumericLiteral(node: Node, options: Options) {
   if (node.type === 'NullLiteral')
     return true
   const { value } = node as StringLiteral
-  const { supportString = false } = options.autoDecimalOptions || {}
+  const { supportString } = options.autoDecimalOptions
   const isString = supportString ? Number.isNaN(Number(value)) : ['StringLiteral', 'TemplateLiteral'].includes(node.type)
   return node.type === 'BooleanLiteral' || isString || value.trim() === ''
 }
@@ -95,7 +95,6 @@ function extractNodeValue(node: Node, options: Options) {
       BinaryExpression: path => processBinary({
         ...transOptions,
         decimalPkgName: options.decimalPkgName,
-        isOwnBinaryExpression: true,
       }, path),
     }),
     options.autoDecimalOptions,

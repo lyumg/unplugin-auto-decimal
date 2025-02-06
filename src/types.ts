@@ -6,8 +6,7 @@ export interface Options {
   imported: boolean
   decimalPkgName: string
   initial: boolean
-  isOwnBinaryExpression?: boolean
-  autoDecimalOptions?: AutoDecimalOptions
+  autoDecimalOptions: InnerAutoDecimalOptions
 }
 
 export interface CommentState {
@@ -22,3 +21,4 @@ export interface AutoDecimalOptions {
   package?: 'decimal.js' | 'decimal.js-light' | 'big.js'
 }
 export type Operator = '+' | '-' | '*' | '/'
+export type InnerAutoDecimalOptions = Required<AutoDecimalOptions>
