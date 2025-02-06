@@ -1,17 +1,23 @@
 import { createUnplugin } from 'unplugin'
-import { createFilter } from 'vite'
+import { createFilter } from '@rollup/pluginutils'
 import type { MagicStringAST } from 'magic-string-ast'
-import type { AutoDecimalOptions } from '../types'
+import type { AutoDecimalOptions, InnerAutoDecimalOptions } from '../types'
 import { REGEX_NODE_MODULES, REGEX_SUPPORTED_EXT, REGEX_VUE } from './constant'
 import { transformAutoDecimal, transformVueAutoDecimal } from './transform'
 
 export function transform(code: string, id: string, options?: AutoDecimalOptions) {
   let msa: MagicStringAST
+  const resolveOptions = Object.assign<InnerAutoDecimalOptions, AutoDecimalOptions | undefined>({
+    supportString: false,
+    tailPatchZero: false,
+    package: 'decimal.js-light',
+    useToDecimal: false,
+  }, options)
   if (REGEX_VUE.some(reg => reg.test(id))) {
-    msa = transformVueAutoDecimal(code, options)
+    msa = transformVueAutoDecimal(code, resolveOptions)
   }
   else {
-    msa = transformAutoDecimal(code, options)
+    msa = transformAutoDecimal(code, resolveOptions)
   }
   if (!msa.hasChanged())
     return
