@@ -1,11 +1,12 @@
 import { isPackageExists } from 'local-pkg'
 import type { NodePath, TraverseOptions } from '@babel/traverse'
-import { isBlockStatement, isCallExpression, isFunctionExpression, isIdentifier, isImportDefaultSpecifier, isImportNamespaceSpecifier, isJSXEmptyExpression, isObjectExpression, isObjectMethod, isObjectProperty, isReturnStatement, isSpreadElement } from '@babel/types'
-import type { File, FunctionExpression, ImportDeclaration, ObjectExpression } from '@babel/types'
-import type { Options } from '../types'
+import { isBinaryExpression, isBlockStatement, isCallExpression, isFunctionExpression, isIdentifier, isImportDefaultSpecifier, isImportNamespaceSpecifier, isJSXEmptyExpression, isMemberExpression, isObjectExpression, isObjectMethod, isObjectProperty, isReturnStatement, isSpreadElement } from '@babel/types'
+import type { BinaryExpression, CallExpression, ExportDefaultDeclaration, File, FunctionExpression, ImportDeclaration, ObjectExpression } from '@babel/types'
+import type { BigRoundingMode, DecimalLightRoundingMode, DecimalRoundingMode, Extra, InnerToDecimalOptions, Options, Package, RoundingModes } from '../types'
 import { processBinary } from './binary'
 import { blockComment, innerComment, nextComment } from './comment'
-import { BLOCK_COMMENT, DECIMAL_PKG_NAME, FILE_COMMENT, PKG_NAME } from './constant'
+import { BLOCK_COMMENT, DECIMAL_PKG_NAME, DEFAULT_TO_DECIMAL_CONFIG, FILE_COMMENT, PKG_NAME } from './constant'
+import { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './rounding-modes'
 
 export function traverseAst(options: Options, checkImport = true, templateImport = false): TraverseOptions {
   return {
@@ -18,6 +19,7 @@ export function traverseAst(options: Options, checkImport = true, templateImport
         case 'JSXOpeningElement':
         case 'JSXExpressionContainer':
         case 'BinaryExpression':
+        case 'CallExpression':
           break
         default:
           blockComment(path)
@@ -40,7 +42,7 @@ export function traverseAst(options: Options, checkImport = true, templateImport
         }
         const pkgName = options.autoDecimalOptions?.package ?? PKG_NAME
         if (!isPackageExists(pkgName)) {
-          throw new Error(`[Auto Decimal] You will need to install ${pkgName}: "npm install ${pkgName}"`)
+          throw new Error(`[Auto Decimal] 请先安装 ${pkgName}`)
         }
         options.imported = true
         options.msa.prepend(`\nimport ${options.decimalPkgName} from '${pkgName}';\n`)
@@ -49,28 +51,7 @@ export function traverseAst(options: Options, checkImport = true, templateImport
     ExportDefaultDeclaration(path) {
       if (!templateImport)
         return
-      let { declaration } = path.node
-      if (!isObjectExpression(declaration) && !isCallExpression(declaration))
-        return
-      if (isCallExpression(declaration)) {
-        const { arguments: args } = declaration
-        const [objectExpr] = args
-        if (!objectExpr || !isObjectExpression(objectExpr))
-          return
-        declaration = objectExpr
-      }
-      const hasDataProperty = existDataProperty(declaration, options)
-      if (!hasDataProperty) {
-        const insertPosition = declaration.start ?? 0 + 1
-        const content = `
-          \n
-          data() {
-            this.${options.decimalPkgName} = ${options.decimalPkgName};
-          },
-          \n
-        `
-        options.msa.prependRight(insertPosition, content)
-      }
+      resolveExportDefaultDeclaration(path, options)
     },
     ImportDeclaration(path) {
       if (options.imported)
@@ -79,8 +60,7 @@ export function traverseAst(options: Options, checkImport = true, templateImport
     },
     JSXElement: path => innerComment(path, BLOCK_COMMENT),
     JSXOpeningElement: (path) => {
-      const { attributes } = path.node
-      if (!attributes.length)
+      if (!path.node.attributes.length)
         return
       innerComment(path)
     },
@@ -89,8 +69,116 @@ export function traverseAst(options: Options, checkImport = true, templateImport
         return
       innerComment(path)
     },
-    BinaryExpression: path => processBinary({ ...options, initial: true }, path),
+    BinaryExpression: path => resolveBinaryExpression(path, options),
+    CallExpression: path => resolveCallExpression(path, options),
   }
+}
+function resolveExportDefaultDeclaration(path: NodePath<ExportDefaultDeclaration>, options: Options) {
+  let { declaration } = path.node
+  if (!isObjectExpression(declaration) && !isCallExpression(declaration))
+    return
+  if (isCallExpression(declaration)) {
+    const { arguments: args } = declaration
+    const [objectExpr] = args
+    if (!objectExpr || !isObjectExpression(objectExpr))
+      return
+    declaration = objectExpr
+  }
+  const hasDataProperty = existDataProperty(declaration, options)
+  if (!hasDataProperty) {
+    const insertPosition = declaration.start ?? 0 + 1
+    const content = `
+          \n
+          data() {
+            this.${options.decimalPkgName} = ${options.decimalPkgName};
+          },
+          \n
+        `
+    options.msa.prependRight(insertPosition, content)
+  }
+}
+function resolveBinaryExpression(path: NodePath<BinaryExpression>, options: Options) {
+  const extra = (path.node.extra ?? {}) as unknown as Extra
+  if (options.autoDecimalOptions.toDecimal && !extra.__shouldTransform)
+    return
+  if (extra.__shouldTransform) {
+    path.node.extra = extra.__extra
+    return processBinary(extra.options, path)
+  }
+  return processBinary({ ...options, initial: true }, path)
+}
+function resolveCallExpression(path: NodePath<CallExpression>, options: Options) {
+  if (!options.autoDecimalOptions.toDecimal)
+    return
+  const { node } = path
+  const { callee, arguments: args } = node
+  if (!isMemberExpression(callee))
+    return
+  const toDecimalOptions: InnerToDecimalOptions = { ...DEFAULT_TO_DECIMAL_CONFIG }
+  if (options.autoDecimalOptions.toDecimal) {
+    Object.assign(toDecimalOptions, options.autoDecimalOptions.toDecimal)
+  }
+  const { property, object } = callee
+  if (!isIdentifier(property) || property.name !== toDecimalOptions.name)
+    return
+  if (!isBinaryExpression(path.parentPath.node) && !isBinaryExpression(object)) {
+    throw new SyntaxError(`
+      line: ${path.parentPath.node.loc?.start.line}, ${options.msa.snipNode(path.parentPath.node).toString()} 或 ${options.msa.snipNode(object).toString()} 不是有效的计算表达式  
+    `)
+  }
+  if (args && args.length > 0) {
+    const [arg] = args
+    if (!isObjectExpression(arg)) {
+      throw new TypeError('toDecimal 参数错误')
+    }
+    const rawArg = options.msa.snipNode(arg).toString()
+    const jsonArg = rawArg.replace(/(\w+):/g, '"$1":').replace(/'/g, '"')
+    try {
+      const argToDecimalOptions = JSON.parse(jsonArg)
+      Object.assign(toDecimalOptions, argToDecimalOptions)
+    }
+    catch (e: unknown) {
+      console.error(e)
+    }
+  }
+  let callArgs = '()'
+  if (toDecimalOptions.callMethod === 'toFixed') {
+    callArgs = `(${toDecimalOptions.precision}, ${getRoundingMode(toDecimalOptions.roundingModes, options.autoDecimalOptions.package)})`
+  }
+  const start = object.end ?? 0
+  options.msa.remove(start, node.end ?? 0)
+  const resolveBinaryOptions = {
+    ...options,
+    initial: true,
+    callArgs,
+    callMethod: toDecimalOptions.callMethod,
+  }
+  if (isBinaryExpression(object)) {
+    if (object.start !== node.start) {
+      options.msa.remove(node.start ?? 0, object.start ?? 0)
+    }
+    object.extra = {
+      ...object.extra,
+      __extra: object.extra,
+      options: resolveBinaryOptions,
+      __shouldTransform: true,
+    }
+    return
+  }
+  const rootPath = findRootBinaryExprPath(path)
+  processBinary(resolveBinaryOptions, rootPath as NodePath<BinaryExpression>)
+}
+function getRoundingMode(mode: RoundingModes | number, packageName: Package) {
+  if (typeof mode === 'number') {
+    return mode
+  }
+  if (packageName === 'big.js') {
+    return BIG_RM[mode as BigRoundingMode]
+  }
+  if (packageName === 'decimal.js') {
+    return DECIMAL_RM[mode as DecimalRoundingMode]
+  }
+  return DECIMAL_RM_LIGHT[mode as DecimalLightRoundingMode]
 }
 function existDataProperty(declaration: ObjectExpression, options: Options) {
   const { properties } = declaration
@@ -119,6 +207,21 @@ function existDataProperty(declaration: ObjectExpression, options: Options) {
     options.msa.prependLeft(returnStatement.start!, content)
     return true
   })
+}
+function findRootBinaryExprPath(path: NodePath) {
+  let parentPath = path.parentPath
+  let binaryPath = path
+  let loop = true
+  while (loop && parentPath) {
+    if (isBinaryExpression(parentPath.node)) {
+      binaryPath = parentPath
+      parentPath = parentPath.parentPath
+    }
+    else {
+      loop = false
+    }
+  }
+  return binaryPath
 }
 export function handleImportDeclaration(path: NodePath<ImportDeclaration>, options: Options) {
   if (path.node.source.value === PKG_NAME) {

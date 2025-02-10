@@ -16,15 +16,15 @@ import type {
 } from '@vue/compiler-core'
 import type { TraverseOptions } from '@babel/traverse'
 import { isObjectExpression } from '@babel/types'
-import type { AutoDecimalOptions, CommentState, Options } from '../types'
+import type { CommentState, InnerAutoDecimalOptions, Options } from '../types'
 import { handleImportDeclaration, traverseAst } from './traverse'
 import { BLOCK_COMMENT, DECIMAL_PKG_NAME, NEXT_COMMENT, OPERATOR_KEYS, PATCH_DECLARATION, PKG_NAME } from './constant'
 
-export function transformAutoDecimal(code: string, autoDecimalOptions?: AutoDecimalOptions) {
+export function transformAutoDecimal(code: string, autoDecimalOptions: InnerAutoDecimalOptions) {
   const { msa } = getTransformed(code, traverseAst, autoDecimalOptions)
   return msa
 }
-export function transformVueAutoDecimal(code: string, autoDecimalOptions?: AutoDecimalOptions) {
+export function transformVueAutoDecimal(code: string, autoDecimalOptions: InnerAutoDecimalOptions) {
   const sfcAst = vueParse(code)
   const { descriptor } = sfcAst
   const { script, scriptSetup, template } = descriptor
@@ -38,6 +38,7 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions?: AutoD
       options => ({
         ImportDeclaration: path => handleImportDeclaration(path, options),
       }),
+      autoDecimalOptions,
     )
     return decimalPkgName
   }
@@ -188,7 +189,7 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions?: AutoD
 export function getTransformed(
   code: string,
   traverseOptions: (options: Options) => TraverseOptions,
-  autoDecimalOptions?: AutoDecimalOptions,
+  autoDecimalOptions: InnerAutoDecimalOptions,
 ) {
   const ast = parse(code, {
     sourceType: 'module',
@@ -202,6 +203,8 @@ export function getTransformed(
     decimalPkgName: DECIMAL_PKG_NAME,
     initial: false,
     shouldSkip: false,
+    callArgs: '()',
+    callMethod: 'toNumber',
   }
   // @ts-expect-error adapter cjs/esm
   const babelTraverse = traverse.default ?? traverse

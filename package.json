@@ -145,8 +145,7 @@
   ],
   "scripts": {
     "build": "tsup src/*.ts --format cjs,esm --dts --splitting --clean",
-    "dev": "tsup src/*.ts --watch src",
-    "build:fix": "esno scripts/postbuild.ts",
+    "dev": "tsup src/*.ts --watch src/core",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",

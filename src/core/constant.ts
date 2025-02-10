@@ -1,3 +1,5 @@
+import type { InnerToDecimalOptions } from '../types'
+
 export const PREFIX = 'ad'
 export const BASE_COMMENT = `${PREFIX}-ignore`
 export const NEXT_COMMENT = `next-${BASE_COMMENT}`
@@ -19,3 +21,9 @@ export const REGEX_VUE = [/\.vue$/, /\.vue\?vue/, /\.vue\?v=/]
 export const REGEX_NODE_MODULES = /node_modules/
 export const DECIMAL_PKG_NAME = '__Decimal'
 export const PKG_NAME = 'decimal.js-light'
+export const DEFAULT_TO_DECIMAL_CONFIG: InnerToDecimalOptions = {
+  precision: 2,
+  roundingModes: 'ROUND_HALF_UP',
+  callMethod: 'toNumber',
+  name: 'toDecimal',
+}

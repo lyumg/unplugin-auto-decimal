@@ -12,21 +12,23 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   const { left, operator, right } = node
   if (!OPERATOR_KEYS.includes(operator))
     return
-  if (shouldIgnoreComments(path)) {
-    path.skip()
-    return
-  }
-  if (isStringSplicing(node, options) || mustTailPatchZero(node, options)) {
-    options.shouldSkip = true
-    path.skip()
-    return
+  if (!options.autoDecimalOptions.toDecimal) {
+    if (shouldIgnoreComments(path)) {
+      path.skip()
+      return
+    }
+    if (isStringSplicing(node, options) || mustTailPatchZero(node, options)) {
+      options.shouldSkip = true
+      path.skip()
+      return
+    }
   }
   // 两边都是数字时, 直接转换成 Decimal
   if (isNumericLiteral(left) && isNumericLiteral(right) && OPERATOR_KEYS.includes(operator)) {
     const decimalParts: Array<string | number> = [`new ${options.decimalPkgName}(${left.value})`]
     decimalParts.push(`.${OPERATOR[operator as Operator]}(${right.value})`)
     if (options.initial) {
-      decimalParts.push('.toNumber()')
+      decimalParts.push(`.${options.callMethod}${options.callArgs}`)
     }
     options.msa.overwriteNode(node, decimalParts.join(''))
     path.skip()
@@ -85,7 +87,7 @@ function createDecimalOperation(leftAst: MagicStringAST, rightAst: MagicStringAS
     leftContent = `${leftAst.toString()}`
   }
   const generateContent = `${leftContent}.${OPERATOR[operator]}(${rightAst.toString()})`
-  return options.initial ? `${generateContent}.toNumber()` : generateContent
+  return options.initial ? `${generateContent}.${options.callMethod}${options.callArgs}` : generateContent
 }
 function extractNodeValue(node: Node, options: Options) {
   const codeSnippet = options.msa.snipNode(node).toString()
