@@ -9,3 +9,5 @@
 | [`tailPatchZero`](./tail-patch-zero.md) | 区分计算表达式和字符串拼接 | boolean | false | 
 | [`supportString`](./support-string.md) | 支持字符串计算 | boolean | false |
 | package | 高精度计算库 | `decimal.js`、`decimal.js-light`、`big.js` | `decimal.js-light` |
+| [`toDecimal`](./to-decimal.md) ^(1.2.0) | 使用 `toDecimal` 进行转换 | boolean \| ToDecimalConfig  | false |
+| dts ^(1.2.0) | 生成.d.ts 文件。 如果已经安装了 `typescript`，默认为 true | boolean \| string | -- |

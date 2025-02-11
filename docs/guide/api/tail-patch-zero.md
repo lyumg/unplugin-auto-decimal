@@ -10,9 +10,8 @@
 :::
 
 `tailPatchZero` 就是在计算表达式的末位手动添加一个 `+ 0 `来告诉 `Auto Decimal`，这是一个计算表达式，你可以尽情的转换不用担心 `decimal.js` 会报错。
-
-```ts { 5,14-15,18-19,22-23 }
-// vite.config.ts
+:::code-group
+```ts [vite.config.ts]
 export default defineConfig({
   plugins: [
     AutoDecimal({
@@ -20,7 +19,10 @@ export default defineConfig({
     })
   ]
 })
+```
+:::
 
+```ts { 5,14-15,18-19,22-23 }
 // ...someone.ts
 const a = 0.1
 const b = 0.2

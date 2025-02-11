@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin, localIconLoader } from 'vitepress-plugin-group-icons'
+import tag from './plugins/tag'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: 'Auto Decimal',
@@ -25,8 +26,9 @@ export default defineConfig({
           { text: '什么是 Auto Decimal？', link: '/guide/what-is-auto-decimal' },
           { text: '快速开始', link: '/guide/getting-started' },
           { text: '配置选项', link: '/guide/api', items: [
-            { text: 'tail patch zero', link: '/guide/api/tail-patch-zero' },
-            { text: 'support string', link: '/guide/api/support-string' },
+            { text: 'tailPatchZero', link: '/guide/api/tail-patch-zero' },
+            { text: 'supportString', link: '/guide/api/support-string' },
+            { text: 'toDecimal', link: '/guide/api/to-decimal' },
           ] },
           { text: '跳过转换', link: '/guide/comment', items: [
             { text: 'splicing', link: '/guide/comment/splicing' },
@@ -45,6 +47,7 @@ export default defineConfig({
   markdown: {
     config: (md) => {
       md.use(groupIconMdPlugin)
+      md.use(tag)
     },
   },
   vite: {
