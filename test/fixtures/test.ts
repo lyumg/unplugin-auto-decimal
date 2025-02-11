@@ -1,3 +1,5 @@
+/* eslint-disable ts/ban-ts-comment */
+// @ts-nocheck
 const _a = 0.1 + 0.2
 // next-ad-ignore
 const _s = 0.1 + 0.2
