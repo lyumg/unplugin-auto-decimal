@@ -86,15 +86,15 @@ function resolveExportDefaultDeclaration(path: NodePath<ExportDefaultDeclaration
   }
   const hasDataProperty = existDataProperty(declaration, options)
   if (!hasDataProperty) {
-    const insertPosition = declaration.start ?? 0 + 1
+    const insertPosition = (declaration.start ?? 0) + 1
     const content = `
-          \n
-          data() {
-            this.${options.decimalPkgName} = ${options.decimalPkgName};
-          },
-          \n
-        `
-    options.msa.prependRight(insertPosition, content)
+  \n
+  data() {
+    this.${options.decimalPkgName} = ${options.decimalPkgName};
+  },
+  \n
+`
+    options.msa.prependLeft(insertPosition, content)
   }
 }
 function resolveBinaryExpression(path: NodePath<BinaryExpression>, options: Options) {
