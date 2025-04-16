@@ -1,6 +1,7 @@
 import type { MagicStringAST } from 'magic-string-ast'
 import type { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './core/rounding-modes'
 
+export interface AutoDecimal {}
 export interface Options {
   shouldSkip: boolean
   msa: MagicStringAST
@@ -34,18 +35,22 @@ export interface Extra {
   options: Options
   __shouldTransform: boolean
 }
-export interface AutoDecimal { }
 
-export type CallMethod = 'toNumber' | 'toString' | 'toFixed'
+export type CallMethod = 'toNumber' | 'toString' | 'toFixed' | 'decimal'
 export type Package = 'decimal.js' | 'decimal.js-light' | 'big.js'
 export type ToDecimalReturn<T> = T extends ToDecimalOptions
   ? T['callMethod'] extends 'toFixed' | 'toString'
     ? string
-    : number
+    : T['callMethod'] extends 'decimal'
+      // @ts-expect-error support extend
+      ? AutoDecimal['decimal']
+      : number
   : number
-export type RoundingModes = AutoDecimal extends { package: 'big.js' }
+  // @ts-expect-error support extend
+export type RoundingModes = AutoDecimal['package'] extends 'big.js'
   ? BigRoundingMode
-  : AutoDecimal extends { package: 'decimal.js' }
+  // @ts-expect-error support extend
+  : AutoDecimal['package'] extends 'decimal.js'
     ? DecimalRoundingMode
     : DecimalLightRoundingMode
 export type DecimalRoundingMode = keyof typeof DECIMAL_RM

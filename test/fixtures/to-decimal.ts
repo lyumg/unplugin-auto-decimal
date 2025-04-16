@@ -23,3 +23,6 @@ const _obj_outer = {
   transform: 0.1 + 0.2,
   skip: 0.1 + 0.2,
 }
+
+const _toDecimal = (0.111 + 0.222).toDecimal({ callMethod: 'decimal' })
+_toDecimal.toNumber()

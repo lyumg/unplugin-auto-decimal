@@ -53,9 +53,18 @@ describe('transform', async () => {
       input:
         const _arr = [0, 0.1 + 0.2.toDecimal({ callMethod: 'toString' }), 3]
       output:
-         const _arr = [0, new __Decimal(0.1).plus(0.2).toString(), 3]
+        const _arr = [0, new __Decimal(0.1).plus(0.2).toString(), 3]
       `, () => {
       expect(transformedCode).toMatch('const _arr = [0, new __Decimal(0.1).plus(0.2).toString(), 3]')
+    })
+    it(`
+      ts return decimal
+      input:
+        const _toDecimal = (0.111 + 0.222).toDecimal({ callMethod: 'decimal' })
+      output:
+        const _toDecimal = new __Decimal(0.111).plus(0.222)
+      `, () => {
+      expect(transformedCode).toMatch('const _toDecimal = new __Decimal(0.111).plus(0.222)')
     })
   }
 })

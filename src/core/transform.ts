@@ -173,14 +173,14 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions: InnerA
   parseScript(script)
   if (needsImport) {
     msa.append(`
-      <script>
-        import ${DECIMAL_PKG_NAME} from '${PKG_NAME}';
-        export default {
-          data() {
-            this.${DECIMAL_PKG_NAME} = ${DECIMAL_PKG_NAME};
-          }
-        }
-      </script>
+<script>
+  import ${DECIMAL_PKG_NAME} from '${PKG_NAME}';
+  export default {
+    data() {
+      this.${DECIMAL_PKG_NAME} = ${DECIMAL_PKG_NAME};
+    }
+  }
+</script>
     `)
   }
 

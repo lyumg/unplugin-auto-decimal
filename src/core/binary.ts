@@ -27,7 +27,7 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   if (isNumericLiteral(left) && isNumericLiteral(right) && OPERATOR_KEYS.includes(operator)) {
     const decimalParts: Array<string | number> = [`new ${options.decimalPkgName}(${left.value})`]
     decimalParts.push(`.${OPERATOR[operator as Operator]}(${right.value})`)
-    if (options.initial) {
+    if (options.initial && options.callMethod !== 'decimal') {
       decimalParts.push(`.${options.callMethod}${options.callArgs}`)
     }
     options.msa.overwriteNode(node, decimalParts.join(''))
@@ -87,7 +87,10 @@ function createDecimalOperation(leftAst: MagicStringAST, rightAst: MagicStringAS
     leftContent = `${leftAst.toString()}`
   }
   const generateContent = `${leftContent}.${OPERATOR[operator]}(${rightAst.toString()})`
-  return options.initial ? `${generateContent}.${options.callMethod}${options.callArgs}` : generateContent
+  if (options.initial && options.callMethod !== 'decimal') {
+    return `${generateContent}.${options.callMethod}${options.callArgs}`
+  }
+  return generateContent
 }
 function extractNodeValue(node: Node, options: Options) {
   const codeSnippet = options.msa.snipNode(node).toString()
