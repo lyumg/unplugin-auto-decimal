@@ -107,3 +107,27 @@ console.log(b, 0.3)
 const c = (0.1111 + 0.2222).toDecimal({precision: 3, callMethod: 'toFixed', roundingModes: 'ROUND_UP'})
 console.log(c, "0.334")
 ```
+
+当在配置 `AutoDecimal` 时，更改了 `name` 属性
+
+:::code-group
+```ts [vite.config.ts] {5}
+export default defineConfig({
+  plugins: [
+    AutoDecimal({
+      toDecimal: { 
+        name: '_t'
+      }
+    })
+  ]
+})
+```
+:::
+```ts
+// 调用方法时，也需要使用更改后的 name
+const b = (0.1 + 0.2)._t()
+console.log(b, 0.3)
+
+const c = (0.1111 + 0.2222)._t({precision: 3, callMethod: 'toFixed', roundingModes: 'ROUND_UP'})
+console.log(c, "0.334")
+```
