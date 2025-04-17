@@ -3,7 +3,7 @@ import { groupIconMdPlugin, groupIconVitePlugin, localIconLoader } from 'vitepre
 import tag from './plugins/tag'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: 'Auto Decimal',
+  title: 'AutoDecimal',
   description: 'A plugin that automatically converts basic operations in JavaScript to decimal.js methods',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -23,7 +23,7 @@ export default defineConfig({
       {
         text: '参考',
         items: [
-          { text: '什么是 Auto Decimal？', link: '/guide/what-is-auto-decimal' },
+          { text: '什么是 AutoDecimal？', link: '/guide/what-is-auto-decimal' },
           { text: '快速开始', link: '/guide/getting-started' },
           { text: '配置选项', link: '/guide/api', items: [
             { text: 'tailPatchZero', link: '/guide/api/tail-patch-zero' },

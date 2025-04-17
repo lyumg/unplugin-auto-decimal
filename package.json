@@ -5,7 +5,7 @@
   "packageManager": "pnpm@9.9.0",
   "description": "",
   "license": "MIT",
-  "homepage": "https://github.com/lyumg/unplugin-auto-decimal#readme",
+  "homepage": "https://lyumg.github.io/unplugin-auto-decimal/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lyumg/unplugin-auto-decimal.git"

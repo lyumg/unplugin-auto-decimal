@@ -1,4 +1,4 @@
-# Auto Decimal 是什么？
+# AutoDecimal 是什么？
 
 `AutoDecimal` 是一个基于 [`unplugin`](https://unplugin.unjs.io/) 构建的自动转换插件，能够自动将 JavaScript 中的加、减、乘、除转换为 [`decimal.js`](https://mikemcl.github.io/decimal.js/) 中的方法，从而避免手动转换所带来的种种不便。
 
@@ -15,7 +15,7 @@
 - 基于拥有广大用户稳定且开源的高精度库 `decimal.js`
 - 基于为各种构建工具提供统一插件的 `unplugin`
 
-**未使用 `Auto Decimal` 时**
+**未使用 `AutoDecimal` 时**
 
 ```js{4}
 const num = 0.1
@@ -24,7 +24,7 @@ const sum = num + otherNum
 console.log(sum, '输出0.30000000000000004')
 ```
 
-**使用 `Auto Decimal` 后**
+**使用 `AutoDecimal` 后**
 
 ```js{4}
 const num = 0.1

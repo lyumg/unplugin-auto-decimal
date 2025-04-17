@@ -3,11 +3,11 @@
 layout: home
 
 hero:
-  name: "Auto Decimal"
+  name: "AutoDecimal"
   text: "一个将 JavaScript 中的基本运算自动转换成 decimal.js 方法的插件"
   actions:
     - theme: brand
-      text: 什么是 Auto Decimal？
+      text: 什么是 AutoDecimal？
       link: /guide/what-is-auto-decimal
     - theme: alt
       text: 快速开始
