@@ -13,6 +13,7 @@ export const OPERATOR = {
   '-': 'minus',
   '*': 'times',
   '/': 'div',
+  '**': 'pow',
 }
 
 export const OPERATOR_KEYS = Object.keys(OPERATOR)
