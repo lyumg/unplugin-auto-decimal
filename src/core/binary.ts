@@ -107,7 +107,7 @@ function extractNodeValue(node: Node, options: Options) {
 }
 function handleBinaryError(error: unknown): never {
   if (error instanceof Error) {
-    throw new SyntaxError(`Auto Decimal compile error： ${error.message}`)
+    throw new SyntaxError(`AutoDecimal compile error： ${error.message}`)
   }
   throw error
 }

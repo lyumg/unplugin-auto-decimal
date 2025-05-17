@@ -23,7 +23,10 @@ export const DECIMAL_PKG_NAME = '__Decimal'
 export const PKG_NAME = 'decimal.js-light'
 export const DEFAULT_TO_DECIMAL_CONFIG: InnerToDecimalOptions = {
   precision: 2,
+  p: 2,
   roundingModes: 'ROUND_HALF_UP',
+  rm: 'ROUND_HALF_UP',
   callMethod: 'toNumber',
+  cm: 'toNumber',
   name: 'toDecimal',
 }

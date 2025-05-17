@@ -7,6 +7,7 @@ import { processBinary } from './binary'
 import { blockComment, innerComment, nextComment } from './comment'
 import { BLOCK_COMMENT, DECIMAL_PKG_NAME, DEFAULT_TO_DECIMAL_CONFIG, FILE_COMMENT, PKG_NAME } from './constant'
 import { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './rounding-modes'
+import { mergeToDecimalOptions } from './options'
 
 export function traverseAst(options: Options, checkImport = true, templateImport = false): TraverseOptions {
   return {
@@ -42,7 +43,7 @@ export function traverseAst(options: Options, checkImport = true, templateImport
         }
         const pkgName = options.autoDecimalOptions?.package ?? PKG_NAME
         if (!isPackageExists(pkgName)) {
-          throw new Error(`[Auto Decimal] 请先安装 ${pkgName}`)
+          throw new Error(`[AutoDecimal] 请先安装 ${pkgName}`)
         }
         options.imported = true
         options.msa.prepend(`\nimport ${options.decimalPkgName} from '${pkgName}';\n`)
@@ -116,7 +117,7 @@ function resolveCallExpression(path: NodePath<CallExpression>, options: Options)
     return
   const toDecimalOptions: InnerToDecimalOptions = { ...DEFAULT_TO_DECIMAL_CONFIG }
   if (options.autoDecimalOptions.toDecimal) {
-    Object.assign(toDecimalOptions, options.autoDecimalOptions.toDecimal)
+    mergeToDecimalOptions(toDecimalOptions, options.autoDecimalOptions.toDecimal)
   }
   const { property, object } = callee
   if (!isIdentifier(property) || property.name !== toDecimalOptions.name)
@@ -135,7 +136,7 @@ function resolveCallExpression(path: NodePath<CallExpression>, options: Options)
     const jsonArg = rawArg.replace(/(\w+):/g, '"$1":').replace(/'/g, '"')
     try {
       const argToDecimalOptions = JSON.parse(jsonArg)
-      Object.assign(toDecimalOptions, argToDecimalOptions)
+      mergeToDecimalOptions(toDecimalOptions, argToDecimalOptions)
     }
     catch (e: unknown) {
       console.error(e)

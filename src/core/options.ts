@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { isPackageExists } from 'local-pkg'
-import type { AutoDecimalOptions, InnerAutoDecimalOptions } from '../types'
+import type { AutoDecimalOptions, InnerAutoDecimalOptions, InnerToDecimalOptions, ToDecimalOptions } from '../types'
 import { DEFAULT_TO_DECIMAL_CONFIG } from './constant'
 
 const rootPath = process.cwd()
@@ -23,4 +23,20 @@ export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecima
       ? { ...DEFAULT_TO_DECIMAL_CONFIG }
       : Object.assign({}, DEFAULT_TO_DECIMAL_CONFIG, options.toDecimal)
   return options
+}
+export function mergeToDecimalOptions(rawOptions: InnerToDecimalOptions, toDecimalOptions: ToDecimalOptions | boolean) {
+  if (typeof toDecimalOptions === 'boolean') {
+    return rawOptions
+  }
+  const precision = toDecimalOptions.precision ?? toDecimalOptions.p ?? rawOptions.precision
+  const callMethod = toDecimalOptions.callMethod ?? toDecimalOptions.cm ?? rawOptions.callMethod
+  const roundingModes = toDecimalOptions.roundingModes ?? toDecimalOptions.rm ?? rawOptions.roundingModes
+  return Object.assign(rawOptions, {
+    precision,
+    callMethod,
+    roundingModes,
+    p: precision,
+    cm: callMethod,
+    rm: roundingModes,
+  })
 }

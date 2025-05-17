@@ -25,8 +25,14 @@ export interface AutoDecimalOptions {
 export type InnerAutoDecimalOptions = Required<AutoDecimalOptions>
 export interface ToDecimalOptions {
   callMethod?: CallMethod
+  /** callMethod */
+  cm?: CallMethod
   precision?: number
+  /** precision */
+  p?: number
   roundingModes?: RoundingModes | number
+  /** roundingModes */
+  rm?: RoundingModes | number
 }
 export type InnerToDecimalOptions = Required<ToDecimalConfig>
 export type ToDecimal = <T extends ToDecimalOptions>(options?: T) => ToDecimalReturn<T>
