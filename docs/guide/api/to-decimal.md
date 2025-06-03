@@ -1,7 +1,7 @@
 # 显式转换 ^(1.2.0)
 
 :::tip
-`toDecimal` 启用后，所有的计算将不会进行转换，只有显示的调用 `toDecimal` 才会将计算转换为 `Decimal` 方法。
+`toDecimal` 启用后，所有的计算将不会进行转换，只有显式调用 `toDecimal` 才会将计算转换为 `Decimal` 方法。
 同时，属性`supportString`, `tailPatchZero` 也将失效。
 :::
 
@@ -93,6 +93,7 @@ const b = 0.1 + 0.2.toDecimal()
 console.log(b, 0.3)
 
 const c = 0.1111 + 0.2222.toDecimal({precision: 3, callMethod: 'toFixed', roundingModes: 'ROUND_UP'})
+// const c = new Decimal(0.1111).plus(0.2222).toFixed(3, Decimal.ROUND_UP)
 console.log(c, "0.334")
 ```
 
