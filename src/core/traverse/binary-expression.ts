@@ -2,11 +2,21 @@ import type { Node, NodePath } from '@babel/traverse'
 import type { BinaryExpression, StringLiteral } from '@babel/types'
 import type { MagicStringAST } from 'magic-string-ast'
 import { isNumericLiteral } from '@babel/types'
-import type { Operator, Options } from '../types'
-import { BASE_COMMENT, LITERALS, OPERATOR, OPERATOR_KEYS } from './constant'
+import type { Extra, Operator, Options } from '../../types'
+import { BASE_COMMENT, LITERALS, OPERATOR, OPERATOR_KEYS } from '../constant'
+import { getTransformed } from '../transform'
 import { getComments } from './comment'
-import { getTransformed } from './transform'
 
+export function resolveBinaryExpression(path: NodePath<BinaryExpression>, options: Options) {
+  const extra = (path.node.extra ?? {}) as unknown as Extra
+  if (options.autoDecimalOptions.toDecimal && !extra.__shouldTransform)
+    return
+  if (extra.__shouldTransform) {
+    path.node.extra = extra.__extra
+    return processBinary(extra.options, path)
+  }
+  return processBinary({ ...options, initial: true }, path)
+}
 export function processBinary(options: Options, path: NodePath<BinaryExpression>) {
   const { node } = path
   const { left, operator, right } = node

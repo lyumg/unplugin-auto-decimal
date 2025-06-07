@@ -17,7 +17,7 @@ import type {
 import type { TraverseOptions } from '@babel/traverse'
 import { isObjectExpression } from '@babel/types'
 import type { CommentState, InnerAutoDecimalOptions, Options } from '../types'
-import { handleImportDeclaration, traverseAst } from './traverse'
+import { resolveImportDeclaration, traverseAst } from './traverse'
 import { BLOCK_COMMENT, DECIMAL_PKG_NAME, NEXT_COMMENT, OPERATOR_KEYS, PATCH_DECLARATION, PKG_NAME } from './constant'
 
 export function transformAutoDecimal(code: string, autoDecimalOptions: InnerAutoDecimalOptions) {
@@ -36,7 +36,7 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions: InnerA
     const { decimalPkgName } = getTransformed(
       scriptSection.content,
       options => ({
-        ImportDeclaration: path => handleImportDeclaration(path, options),
+        ImportDeclaration: path => resolveImportDeclaration(path, options),
       }),
       autoDecimalOptions,
     )

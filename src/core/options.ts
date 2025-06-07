@@ -11,6 +11,8 @@ const defaultOptions: InnerAutoDecimalOptions = {
   package: 'decimal.js-light',
   toDecimal: false,
   dts: isPackageExists('typescript'),
+  supportNewFunction: false,
+  decimalName: '__Decimal',
 }
 export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecimalOptions {
   const options = Object.assign({}, defaultOptions, rawOptions)

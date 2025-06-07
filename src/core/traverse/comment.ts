@@ -1,7 +1,7 @@
 import type { NodePath } from '@babel/traverse'
 import type { Comment } from '@babel/types'
 import { isJSXElement, isJSXEmptyExpression, isJSXExpressionContainer, isJSXOpeningElement } from '@babel/types'
-import { BASE_COMMENT, BLOCK_COMMENT, NEXT_COMMENT } from './constant'
+import { BASE_COMMENT, BLOCK_COMMENT, NEXT_COMMENT } from '../constant'
 
 export function getComments(path: NodePath) {
   const leadingComments = path.node.leadingComments ?? []

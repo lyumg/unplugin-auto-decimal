@@ -1,5 +1,5 @@
 import type { MagicStringAST } from 'magic-string-ast'
-import type { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './core/rounding-modes'
+import type { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './core/constant'
 
 export interface AutoDecimal {}
 export interface Options {
@@ -21,6 +21,10 @@ export interface AutoDecimalOptions {
   package?: Package
   toDecimal?: boolean | ToDecimalConfig
   dts?: boolean | string
+  decimalName?: string
+  supportNewFunction?: boolean | {
+    toDecimal: false
+  }
 }
 export type InnerAutoDecimalOptions = Required<AutoDecimalOptions>
 export interface ToDecimalOptions {
