@@ -12,7 +12,15 @@ describe('transform', async () => {
   })
   for (const file of files) {
     const fixture = await fs.readFile(resolve(root, file), 'utf-8')
-    const transformedCode = (await transform(fixture, file, { supportString: true }))?.code ?? fixture
+    const transformedCode = transform(fixture, file, {
+      supportString: true,
+      tailPatchZero: false,
+      package: 'decimal.js-light',
+      toDecimal: false,
+      dts: false,
+      decimalName: '__Decimal',
+      supportNewFunction: false,
+    })?.code ?? fixture
 
     it(`
       vue.setup
