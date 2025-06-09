@@ -26,3 +26,23 @@ const d = c + '我也试试'
 console.log(d, '1我也试试')
 ```
 
+:::warning
+如果一个计算表达式中存在变量时，`AutoDecimal` 不会检索变量的值是否合法。
+:::
+将上面的示例稍微改写一下
+
+```ts { 7-11 }
+const a = '1'
+const b = a + 1
+// 这样是可以的
+console.log(b, '这里的结果是 2，而不是 “11”')
+
+// 改写
+// const c = '1'
+// const d = c + '我也试试'
+const c = '我也试试'
+// 此处仍然会转换为 const d = new __Decimal(c).plus(1).toNumber()
+// 所以这里 Decimal 会报错，因为 c 不是一个有效的数值
+const d = c + 1
+console.log(d, '1我也试试')
+```

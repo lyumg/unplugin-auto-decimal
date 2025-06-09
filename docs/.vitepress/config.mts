@@ -29,6 +29,7 @@ export default defineConfig({
             { text: 'tailPatchZero', link: '/guide/api/tail-patch-zero' },
             { text: 'supportString', link: '/guide/api/support-string' },
             { text: 'toDecimal', link: '/guide/api/to-decimal' },
+            { text: 'supportNewFunction', link: '/guide/api/new-function' },
           ] },
           { text: '跳过转换', link: '/guide/comment', items: [
             { text: 'splicing', link: '/guide/comment/splicing' },
