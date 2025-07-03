@@ -48,15 +48,8 @@ export interface Extra {
 
 export type CallMethod = 'toNumber' | 'toString' | 'toFixed' | 'decimal'
 export type Package = 'decimal.js' | 'decimal.js-light' | 'big.js'
-export type ToDecimalReturn<T> = T extends ToDecimalOptions
-  ? T['callMethod'] extends 'toFixed' | 'toString'
-    ? string
-    : T['callMethod'] extends 'decimal'
-      // @ts-expect-error support extend
-      ? AutoDecimal['decimal']
-      : number
-  : number
-  // @ts-expect-error support extend
+export type ToDecimalReturn<T extends ToDecimalOptions> = GetToDecimalReturn<T, 'callMethod'> | GetToDecimalReturn<T, 'cm'>
+// @ts-expect-error support extend
 export type RoundingModes = AutoDecimal['package'] extends 'big.js'
   ? BigRoundingMode
   // @ts-expect-error support extend
@@ -72,3 +65,11 @@ export interface CommentState {
   block: boolean
   next: boolean
 }
+type GetToDecimalReturn<T extends ToDecimalOptions, V extends 'callMethod' | 'cm'> = V extends keyof T ?
+  T[V] extends 'toFixed' | 'toString'
+    ? string
+    : T[V] extends 'decimal'
+    // @ts-expect-error support extend interface
+      ? AutoDecimal['decimal']
+      : number
+  : never

@@ -5,4 +5,7 @@ import App from './App.vue'
 const app = createApp(App)
 // console.log(0.1 + 0.2, 'main')
 // 挂载实例
-app.mount('#app')
+app.mount('#app');
+
+const result = (0.1 + 0.2).toDecimal({ cm: 'decimal'})
+console.log(result.eq(0.3))

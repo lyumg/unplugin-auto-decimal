@@ -14,7 +14,8 @@
     "resolveJsonModule": true,
     "strict": true,
     "sourceMap": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": ["./auto-decimal.d.ts", "./global.d.ts"]
   },
   "references": [{ "path": "./tsconfig.node.json" }],
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "../../src/index.ts"]
