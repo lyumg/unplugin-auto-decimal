@@ -1,11 +1,11 @@
 import type { Binding, NodePath } from '@babel/traverse'
 import type { Expression, FunctionDeclaration, Identifier, NewExpression, StringLiteral, TemplateLiteral, VariableDeclarator } from '@babel/types'
-import { isArrayExpression, isArrowFunctionExpression, isAssignmentExpression, isBlockStatement, isCallExpression, isFunctionDeclaration, isIdentifier, isMemberExpression, isNumericLiteral, isObjectProperty, isReturnStatement, isStringLiteral, isTemplateLiteral, isVariableDeclarator } from '@babel/types'
 import type { Options } from '../../types'
+import { isArrayExpression, isArrowFunctionExpression, isAssignmentExpression, isBlockStatement, isCallExpression, isFunctionDeclaration, isIdentifier, isMemberExpression, isNumericLiteral, isObjectProperty, isReturnStatement, isStringLiteral, isTemplateLiteral, isVariableDeclarator } from '@babel/types'
+import { traverseAst } from '.'
 import { RETURN_DECLARATION_CODE, RETURN_DECLARATION_FN, RETURN_DECLARATION_PREFIX } from '../constant'
 import { getTransformed } from '../transform'
 import { findScopeBinding, findTargetPath } from '../utils'
-import { traverseAst } from '.'
 
 // TIPS 使用 new Function 时，__Decimal 为全局作用域，需要将 __Decimal 以参数的形式传递过去
 export function resolveNewFunctionExpression(path: NodePath<NewExpression>, options: Options) {

@@ -1,15 +1,15 @@
-import { isPackageExists } from 'local-pkg'
 import type { TraverseOptions } from '@babel/traverse'
-import { isJSXEmptyExpression } from '@babel/types'
 import type { File } from '@babel/types'
 import type { Options } from '../../types'
+import { isJSXEmptyExpression } from '@babel/types'
+import { isPackageExists } from 'local-pkg'
 import { BLOCK_COMMENT, FILE_COMMENT, PKG_NAME } from '../constant'
 import { resolveBinaryExpression } from './binary-expression'
-import { blockComment, innerComment, nextComment } from './comment'
 import { resolveCallExpression } from './call-expression'
-import { resolveNewFunctionExpression } from './new-function'
-import { resolveImportDeclaration } from './import-declaration'
+import { blockComment, innerComment, nextComment } from './comment'
 import { resolveExportDefaultDeclaration } from './export-declaration'
+import { resolveImportDeclaration } from './import-declaration'
+import { resolveNewFunctionExpression } from './new-function'
 
 export function traverseAst(options: Options, checkImport = true, templateImport = false): TraverseOptions {
   return {

@@ -1,7 +1,7 @@
+import type { InnerAutoDecimalOptions } from '../types'
+import { existsSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
-import { existsSync } from 'node:fs'
-import type { InnerAutoDecimalOptions } from '../types'
 import { DEFAULT_TO_DECIMAL_CONFIG } from './constant'
 
 export async function generateDeclaration(options: InnerAutoDecimalOptions) {

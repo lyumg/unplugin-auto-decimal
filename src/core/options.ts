@@ -1,7 +1,7 @@
+import type { AutoDecimalOptions, InnerAutoDecimalOptions, InnerToDecimalOptions, ToDecimalOptions } from '../types'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { isPackageExists } from 'local-pkg'
-import type { AutoDecimalOptions, InnerAutoDecimalOptions, InnerToDecimalOptions, ToDecimalOptions } from '../types'
 import { DEFAULT_TO_DECIMAL_CONFIG } from './constant'
 
 const rootPath = process.cwd()

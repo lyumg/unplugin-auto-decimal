@@ -1,11 +1,11 @@
-import type { BinaryExpression, CallExpression, NewExpression } from '@babel/types'
 import type { NodePath } from '@babel/traverse'
-import { isBinaryExpression, isIdentifier, isMemberExpression, isObjectExpression } from '@babel/types'
+import type { BinaryExpression, CallExpression, NewExpression } from '@babel/types'
 import type { InnerToDecimalOptions, Options } from '../../types'
-import { DEFAULT_TO_DECIMAL_CONFIG } from '../constant'
-import { findRootBinaryExprPath, getRoundingMode } from '../utils'
-import { mergeToDecimalOptions } from '../options'
+import { isBinaryExpression, isIdentifier, isMemberExpression, isObjectExpression } from '@babel/types'
 import { processBinary, resolveNewFunctionExpression } from '.'
+import { DEFAULT_TO_DECIMAL_CONFIG } from '../constant'
+import { mergeToDecimalOptions } from '../options'
+import { findRootBinaryExprPath, getRoundingMode } from '../utils'
 
 export function resolveCallExpression(path: NodePath<CallExpression>, options: Options) {
   const { autoDecimalOptions } = options

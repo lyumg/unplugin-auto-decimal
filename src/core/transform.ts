@@ -1,9 +1,4 @@
-import traverse from '@babel/traverse'
-import { parse } from '@babel/parser'
-import { parse as vueParse } from '@vue/compiler-sfc'
-import { NodeTypes } from '@vue/compiler-core'
-import { MagicStringAST } from 'magic-string-ast'
-import type { SFCScriptBlock } from '@vue/compiler-sfc'
+import type { TraverseOptions } from '@babel/traverse'
 import type {
   CommentNode,
   CompoundExpressionNode,
@@ -14,11 +9,16 @@ import type {
   InterpolationNode,
   TemplateChildNode,
 } from '@vue/compiler-core'
-import type { TraverseOptions } from '@babel/traverse'
-import { isObjectExpression } from '@babel/types'
+import type { SFCScriptBlock } from '@vue/compiler-sfc'
 import type { CommentState, InnerAutoDecimalOptions, Options } from '../types'
-import { resolveImportDeclaration, traverseAst } from './traverse'
+import { parse } from '@babel/parser'
+import traverse from '@babel/traverse'
+import { isObjectExpression } from '@babel/types'
+import { NodeTypes } from '@vue/compiler-core'
+import { parse as vueParse } from '@vue/compiler-sfc'
+import { MagicStringAST } from 'magic-string-ast'
 import { BLOCK_COMMENT, DECIMAL_PKG_NAME, NEXT_COMMENT, OPERATOR_KEYS, PATCH_DECLARATION, PKG_NAME } from './constant'
+import { resolveImportDeclaration, traverseAst } from './traverse'
 
 export function transformAutoDecimal(code: string, autoDecimalOptions: InnerAutoDecimalOptions) {
   const { msa } = getTransformed(code, traverseAst, autoDecimalOptions)

@@ -1,11 +1,11 @@
-import { createUnplugin } from 'unplugin'
-import { createFilter } from '@rollup/pluginutils'
 import type { MagicStringAST } from 'magic-string-ast'
 import type { AutoDecimalOptions, InnerAutoDecimalOptions } from '../types'
+import { createFilter } from '@rollup/pluginutils'
+import { createUnplugin } from 'unplugin'
 import { REGEX_NODE_MODULES, REGEX_SUPPORTED_EXT, REGEX_VUE } from './constant'
-import { transformAutoDecimal, transformVueAutoDecimal } from './transform'
-import { resolveOptions } from './options'
 import { generateDeclaration } from './generate'
+import { resolveOptions } from './options'
+import { transformAutoDecimal, transformVueAutoDecimal } from './transform'
 
 export function transform(code: string, id: string, options: InnerAutoDecimalOptions) {
   let msa: MagicStringAST

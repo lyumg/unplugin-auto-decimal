@@ -1,5 +1,6 @@
 import type { NodePath } from '@babel/traverse'
 import type { ExportDefaultDeclaration, FunctionExpression, ObjectExpression } from '@babel/types'
+import type { Options } from '../../types'
 import {
   isBlockStatement,
   isCallExpression,
@@ -11,7 +12,6 @@ import {
   isReturnStatement,
   isSpreadElement,
 } from '@babel/types'
-import type { Options } from '../../types'
 
 export function resolveExportDefaultDeclaration(path: NodePath<ExportDefaultDeclaration>, options: Options) {
   let { declaration } = path.node

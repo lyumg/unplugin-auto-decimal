@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import AutoDecimal from './src/vite'
 
 export default defineConfig({

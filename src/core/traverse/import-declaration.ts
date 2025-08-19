@@ -1,7 +1,7 @@
 import type { NodePath } from '@babel/traverse'
 import type { ImportDeclaration } from '@babel/types'
-import { isIdentifier, isImportDefaultSpecifier, isImportNamespaceSpecifier } from '@babel/types'
 import type { Options } from '../../types'
+import { isIdentifier, isImportDefaultSpecifier, isImportNamespaceSpecifier } from '@babel/types'
 import { DECIMAL_PKG_NAME, PKG_NAME } from '../constant'
 
 export function resolveImportDeclaration(path: NodePath<ImportDeclaration>, options: Options) {
