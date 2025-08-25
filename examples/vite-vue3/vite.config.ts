@@ -15,7 +15,7 @@ export default defineConfig({
   build: {
     minify: false,
   },
-  plugins: [AutoDecimal({ toDecimal: true }), vue(), vueJsx(), Inspect()],
+  plugins: [AutoDecimal({ toDecimal: true, dts: false }), vue(), vueJsx(), Inspect()],
   server: {
     port: 8080,
     hmr: {

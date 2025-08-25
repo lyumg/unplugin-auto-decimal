@@ -11,6 +11,7 @@ export interface Options {
   callMethod: CallMethod
   callArgs: string
   autoDecimalOptions: InnerAutoDecimalOptions
+  integer: boolean
 }
 export interface ToDecimalConfig extends ToDecimalOptions {
   name?: string
@@ -65,8 +66,8 @@ export interface CommentState {
   block: boolean
   next: boolean
 }
-type GetToDecimalReturn<T extends ToDecimalOptions, V extends 'callMethod' | 'cm'> = V extends keyof T ?
-  T[V] extends 'toFixed' | 'toString'
+type GetToDecimalReturn<T extends ToDecimalOptions, V extends 'callMethod' | 'cm'> = V extends keyof T
+  ? T[V] extends 'toFixed' | 'toString'
     ? string
     : T[V] extends 'decimal'
     // @ts-expect-error support extend interface

@@ -14,7 +14,8 @@ export function resolveImportDeclaration(path: NodePath<ImportDeclaration>, opti
         return true
       }
       else if (isImportNamespaceSpecifier(spec)) {
-        options.decimalPkgName = `${spec.local.name}.Decimal`
+        const pkgName = options.autoDecimalOptions.package === 'big.js' ? 'Big' : 'Decimal'
+        options.decimalPkgName = `${spec.local.name}.${pkgName}`
         return true
       }
       else if (isIdentifier(spec.imported) && spec.imported.name !== DECIMAL_PKG_NAME) {

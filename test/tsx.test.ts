@@ -1,7 +1,7 @@
-import { resolve } from 'node:path'
 import { promises as fs } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { resolve } from 'node:path'
 import fastGlob from 'fast-glob'
+import { describe, expect, it } from 'vitest'
 import { transform } from '../src/core/unplugin'
 
 describe('transform tsx', async () => {

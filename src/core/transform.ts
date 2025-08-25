@@ -202,6 +202,7 @@ export function getTransformed(
     msa,
     decimalPkgName: DECIMAL_PKG_NAME,
     initial: false,
+    integer: false,
     shouldSkip: false,
     callArgs: '()',
     callMethod: 'toNumber',

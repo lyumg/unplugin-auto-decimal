@@ -1,7 +1,7 @@
-import { resolve } from 'node:path'
 import { promises as fs } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { resolve } from 'node:path'
 import fastGlob from 'fast-glob'
+import { describe, expect, it } from 'vitest'
 import { transform } from '../src/core/unplugin'
 
 describe('transform', async () => {
@@ -158,6 +158,25 @@ describe('transform', async () => {
       `, () => {
       expect(transformedCode).toMatch('const _block = 0.1 + 0.2')
       expect(transformedCode).toMatch('const _ad = 0.1 + 0.2')
+    })
+
+    it(`
+      ts skip integer
+      input:
+        const integer = 1 + 2 + 3
+      output:
+        const integer = 1 + 2 + 3
+      `, () => {
+      expect(transformedCode).toMatch('const integer = 1 + 2 + 3')
+    })
+    it(`
+      ts skip integer mix
+      input:
+        const _mix = integer * (3 + 4) - (5 - 6 + 0.4)
+      output:
+        const _mix = new __Decimal(integer).times(3 + 4).minus(new __Decimal(5 - 6).plus(0.4))
+      `, () => {
+      expect(transformedCode).toMatch('const _mix = new __Decimal(integer).times(3 + 4).minus(new __Decimal(5 - 6).plus(0.4))')
     })
   }
 })

@@ -35,3 +35,7 @@ const _obj_outer = {
   // next-ad-ignore
   skip: 0.1 + 0.2,
 }
+
+const integer = 1 + 2 + 3
+
+const _mix = integer * (3 + 4) - (5 - 6 + 0.4)

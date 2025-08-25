@@ -5,6 +5,7 @@ import type { Extra, Operator, Options } from '../../types'
 import { isNumericLiteral } from '@babel/types'
 import { BASE_COMMENT, LITERALS, OPERATOR, OPERATOR_KEYS } from '../constant'
 import { getTransformed } from '../transform'
+import { isInteger } from '../utils'
 import { getComments } from './comment'
 
 export function resolveBinaryExpression(path: NodePath<BinaryExpression>, options: Options) {
@@ -22,6 +23,9 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   const { left, operator, right } = node
   if (!OPERATOR_KEYS.includes(operator))
     return
+  if (options.integer) {
+    return
+  }
   if (!options.autoDecimalOptions.toDecimal) {
     if (shouldIgnoreComments(path)) {
       path.skip()
@@ -35,6 +39,11 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   }
   // 两边都是数字时, 直接转换成 Decimal
   if (isNumericLiteral(left) && isNumericLiteral(right) && OPERATOR_KEYS.includes(operator)) {
+    // 如果都是整数则跳过
+    if (isInteger(left.value) && isInteger(right.value)) {
+      options.integer = true
+      return
+    }
     const decimalParts: Array<string | number> = [`new ${options.decimalPkgName}(${left.value})`]
     decimalParts.push(`.${OPERATOR[operator as Operator]}(${right.value})`)
     if (options.initial && options.callMethod !== 'decimal') {
@@ -47,6 +56,11 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   try {
     const leftNode = extractNodeValue(left, options)
     const rightNode = extractNodeValue(right, options)
+    const leftIsInteger = leftNode.integer || (isNumericLiteral(left) && isInteger(left.value))
+    const rightIsInteger = rightNode.integer || (isNumericLiteral(right) && isInteger(right.value))
+    if (leftIsInteger && rightIsInteger) {
+      return
+    }
     if (leftNode.shouldSkip || rightNode.shouldSkip)
       return
     const content = createDecimalOperation(leftNode.msa, rightNode.msa, operator as Operator, options)
@@ -107,10 +121,10 @@ function extractNodeValue(node: Node, options: Options) {
   return getTransformed(
     codeSnippet,
     transOptions => ({
-      BinaryExpression: path => processBinary({
-        ...transOptions,
+      BinaryExpression: path => processBinary(Object.assign(transOptions, {
         decimalPkgName: options.decimalPkgName,
-      }, path),
+        integer: options.integer,
+      }), path),
     }),
     options.autoDecimalOptions,
   )

@@ -5,5 +5,5 @@ import AutoDecimal from 'unplugin-auto-decimal/vite'
 import Inspect from 'vite-plugin-inspect'
 
 export default defineConfig({
-  plugins: [vue(), vueJsx(), AutoDecimal({ tailPatchZero: true}), Inspect()],
+  plugins: [vue(), vueJsx(), AutoDecimal({ tailPatchZero: true, dts: false}), Inspect()],
 })
