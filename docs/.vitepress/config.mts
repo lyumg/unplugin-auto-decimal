@@ -3,6 +3,10 @@ import { groupIconMdPlugin, groupIconVitePlugin, localIconLoader } from 'vitepre
 import tag from './plugins/tag'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  head: [[
+    'link',
+    { rel: 'icon', href: '/unplugin-auto-decimal/favicon.svg' },
+  ]],
   title: 'AutoDecimal',
   description: 'A plugin that automatically converts basic operations in JavaScript to decimal.js methods',
   themeConfig: {
