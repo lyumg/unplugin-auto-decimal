@@ -40,7 +40,7 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   // 两边都是数字时, 直接转换成 Decimal
   if (isNumericLiteral(left) && isNumericLiteral(right) && OPERATOR_KEYS.includes(operator)) {
     // 如果都是整数则跳过
-    if (isInteger(left.value) && isInteger(right.value)) {
+    if (isInteger(left) && isInteger(right)) {
       options.integer = true
       return
     }
@@ -56,8 +56,8 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   try {
     const leftNode = extractNodeValue(left, options)
     const rightNode = extractNodeValue(right, options)
-    const leftIsInteger = leftNode.integer || (isNumericLiteral(left) && isInteger(left.value))
-    const rightIsInteger = rightNode.integer || (isNumericLiteral(right) && isInteger(right.value))
+    const leftIsInteger = leftNode.integer || isInteger(left)
+    const rightIsInteger = rightNode.integer || isInteger(right)
     if (leftIsInteger && rightIsInteger) {
       return
     }

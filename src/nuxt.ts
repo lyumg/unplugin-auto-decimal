@@ -1,5 +1,5 @@
-import { addVitePlugin, addWebpackPlugin, defineNuxtModule } from '@nuxt/kit'
 import type { AutoDecimalOptions } from './types'
+import { addVitePlugin, addWebpackPlugin, defineNuxtModule } from '@nuxt/kit'
 import unplugin from '.'
 import '@nuxt/schema'
 

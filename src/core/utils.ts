@@ -1,6 +1,6 @@
-import type { NodePath } from '@babel/traverse'
+import type { Node, NodePath } from '@babel/traverse'
 import type { BigRoundingMode, DecimalLightRoundingMode, DecimalRoundingMode, Package, RoundingModes } from '../types'
-import { isBinaryExpression } from '@babel/types'
+import { isBinaryExpression, isNumericLiteral, isStringLiteral, isTemplateLiteral } from '@babel/types'
 import { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './constant'
 
 export function getRoundingMode(mode: RoundingModes | number, packageName: Package) {
@@ -57,6 +57,14 @@ export function findTargetPath(path: NodePath, isTargetFunction: (node: any) => 
   return parentPath
 }
 
-export function isInteger(value: number) {
-  return !value.toString().includes('.')
+export function isInteger(node: Node) {
+  if (isNumericLiteral(node)) {
+    const { value } = node
+    return !value.toString().includes('.')
+  }
+  return false
+}
+
+export function isStringNode(node?: Node | null) {
+  return isStringLiteral(node) || isTemplateLiteral(node)
 }
