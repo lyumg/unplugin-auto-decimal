@@ -190,7 +190,7 @@ function provideDecimal(path: NodePath, node: Expression, options: Options) {
     parentPath = findTargetPath(path, isVariableDeclarator)
     if (!parentPath)
       return
-      // TODO MemberExpression 目前不支持变量引用 [variable] 形式调用
+    // TODO MemberExpression 目前不支持变量引用 [variable] 形式调用
     if (isArrayExpression(parent)) {
       params = path.key!
     }
@@ -245,13 +245,11 @@ function resolveStringTemplateLiteral(node: StringLiteral | TemplateLiteral, opt
   const supportNewFunction = autoDecimalOptions.supportNewFunction as NewFunctionOptions
   const code = RETURN_DECLARATION_FN.replace(RETURN_DECLARATION_CODE, rawString)
   const toDecimalParams = supportNewFunction.toDecimal ?? false
-  const runtimeOptions = { } as Options
-  const { msa: transformedMsa } = getTransformed(code, (opts) => {
-    return traverseAst(Object.assign(runtimeOptions, opts, {
-      fromNewFunction: true,
-      needImport: options.needImport,
-    }), false)
-  }, {
+  const runtimeOptions = {} as Options
+  const { msa: transformedMsa } = getTransformed(code, opts => traverseAst(Object.assign(runtimeOptions, opts, {
+    fromNewFunction: true,
+    needImport: options.needImport,
+  }), false), {
     ...autoDecimalOptions,
     toDecimal: toDecimalParams,
   })

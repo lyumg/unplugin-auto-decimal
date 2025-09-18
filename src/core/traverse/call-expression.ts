@@ -72,5 +72,7 @@ export function resolveCallExpression(path: NodePath<CallExpression>, options: O
     return
   }
   const rootPath = findRootBinaryExprPath(path)
-  processBinary(resolveBinaryOptions, rootPath as NodePath<BinaryExpression>)
+  const runtimeOptions = {} as Options
+  processBinary(Object.assign(runtimeOptions, resolveBinaryOptions), rootPath as NodePath<BinaryExpression>)
+  Object.assign(options, { needImport: runtimeOptions.needImport })
 }
