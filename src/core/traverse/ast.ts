@@ -2,7 +2,6 @@ import type { TraverseOptions } from '@babel/traverse'
 import type { File } from '@babel/types'
 import type { Options } from '../../types'
 import { isJSXEmptyExpression } from '@babel/types'
-import { isPackageExists } from 'local-pkg'
 import { BLOCK_COMMENT, FILE_COMMENT, PKG_NAME } from '../constant'
 import { resolveBinaryExpression } from './binary-expression'
 import { resolveCallExpression } from './call-expression'
@@ -39,15 +38,13 @@ export function traverseAst(options: Options, checkImport = true, templateImport
         }
       },
       exit() {
-        if (!checkImport || options.imported || (!options.msa.hasChanged() && !templateImport)) {
+        const hasChanged = options.msa.hasChanged()
+        if (!checkImport || options.imported || (!hasChanged && !templateImport)) {
           return
         }
         if (!options.needImport)
           return
         const pkgName = options.autoDecimalOptions?.package ?? PKG_NAME
-        if (!isPackageExists(pkgName)) {
-          throw new ReferenceError(`[AutoDecimal] 请先安装 ${pkgName}`)
-        }
         options.imported = true
         options.msa.prepend(`\nimport ${options.decimalPkgName} from '${pkgName}';\n`)
       },

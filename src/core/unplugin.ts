@@ -1,8 +1,9 @@
 import type { MagicStringAST } from 'magic-string-ast'
 import type { AutoDecimalOptions, InnerAutoDecimalOptions } from '../types'
 import { createFilter } from '@rollup/pluginutils'
+import { isPackageExists } from 'local-pkg'
 import { createUnplugin } from 'unplugin'
-import { REGEX_NODE_MODULES, REGEX_SUPPORTED_EXT, REGEX_VUE } from './constant'
+import { PKG_NAME, REGEX_NODE_MODULES, REGEX_SUPPORTED_EXT, REGEX_VUE } from './constant'
 import { generateDeclaration } from './generate'
 import { resolveOptions } from './options'
 import { transformAutoDecimal, transformVueAutoDecimal } from './transform'
@@ -38,6 +39,11 @@ export default createUnplugin<AutoDecimalOptions | undefined>((rawOptions) => {
       return filter(id)
     },
     transform(code, id) {
+      const pkgName = options.package ?? PKG_NAME
+      if (!isPackageExists(pkgName)) {
+        console.error(`[AutoDecimal] 请先安装 ${pkgName}`)
+        return { code }
+      }
       return transform(code, id, options)
     },
   }
