@@ -2,17 +2,18 @@ import { promises as fs } from 'node:fs'
 import { resolve } from 'node:path'
 import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
+import { resolveOptions } from '../src/core/options'
 import { transform } from '../src/core/unplugin'
 
 describe('transform', async () => {
   const root = resolve(__dirname, 'fixtures')
-  const files = await fastGlob('*-function-to-decimal.ts', {
+  const files = await fastGlob('new-function-to-decimal.ts', {
     cwd: root,
     onlyFiles: true,
   })
   for (const file of files) {
     const fixture = await fs.readFile(resolve(root, file), 'utf-8')
-    const transformedCode = transform(fixture, file, {
+    const transformedCode = transform(fixture, file, resolveOptions({
       supportString: true,
       tailPatchZero: false,
       package: 'decimal.js-light',
@@ -20,7 +21,7 @@ describe('transform', async () => {
       dts: false,
       decimalName: '__Decimal',
       supportNewFunction: true,
-    })?.code ?? fixture
+    }))?.code ?? fixture
     it(`
       new Function toDecimal
       input:
