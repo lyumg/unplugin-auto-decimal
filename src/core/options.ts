@@ -2,7 +2,7 @@ import type { AutoDecimalOptions, InnerAutoDecimalOptions, InnerToDecimalOptions
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { isPackageExists } from 'local-pkg'
-import { DEFAULT_TO_DECIMAL_CONFIG } from './constant'
+import { DEFAULT_NEW_FUNCTION_CONFIG, DEFAULT_TO_DECIMAL_CONFIG } from './constant'
 
 const rootPath = process.cwd()
 const defaultOptions: InnerAutoDecimalOptions = {
@@ -24,6 +24,14 @@ export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecima
     : typeof options.toDecimal === 'boolean'
       ? { ...DEFAULT_TO_DECIMAL_CONFIG }
       : Object.assign({}, DEFAULT_TO_DECIMAL_CONFIG, options.toDecimal)
+  options.supportNewFunction = !options.supportNewFunction
+    ? false
+    : typeof options.supportNewFunction === 'boolean'
+      ? { toDecimal: options.toDecimal }
+      : {
+          ...DEFAULT_NEW_FUNCTION_CONFIG,
+          ...options.supportNewFunction,
+        }
   return options
 }
 export function mergeToDecimalOptions(rawOptions: InnerToDecimalOptions, toDecimalOptions: ToDecimalOptions | boolean) {

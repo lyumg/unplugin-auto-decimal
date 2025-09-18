@@ -42,6 +42,8 @@ export function traverseAst(options: Options, checkImport = true, templateImport
         if (!checkImport || options.imported || (!options.msa.hasChanged() && !templateImport)) {
           return
         }
+        if (!options.needImport)
+          return
         const pkgName = options.autoDecimalOptions?.package ?? PKG_NAME
         if (!isPackageExists(pkgName)) {
           throw new ReferenceError(`[AutoDecimal] 请先安装 ${pkgName}`)

@@ -1,6 +1,7 @@
 import type { Node, NodePath } from '@babel/traverse'
-import type { BigRoundingMode, DecimalLightRoundingMode, DecimalRoundingMode, Package, RoundingModes } from '../types'
-import { isBinaryExpression, isNumericLiteral, isStringLiteral, isTemplateLiteral } from '@babel/types'
+import type { Identifier, MemberExpression } from '@babel/types'
+import type { BigRoundingMode, DecimalLightRoundingMode, DecimalRoundingMode, Options, Package, RoundingModes } from '../types'
+import { isArrowFunctionExpression, isBinaryExpression, isFunctionDeclaration, isFunctionExpression, isIdentifier, isMemberExpression, isNumericLiteral, isStringLiteral, isTemplateLiteral, isVariableDeclarator } from '@babel/types'
 import { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './constant'
 
 export function getRoundingMode(mode: RoundingModes | number, packageName: Package) {
@@ -32,7 +33,12 @@ export function findRootBinaryExprPath(path: NodePath) {
   return binaryPath
 }
 
-export function findScopeBinding(path: NodePath, name: string) {
+export function findScopeBinding(path: NodePath | null, name?: string | MemberExpression) {
+  if (!path || !name)
+    return
+  if (typeof name !== 'string') {
+    name = getObjectIdentifier(name)
+  }
   const binding = path.scope.hasBinding(name)
   if (!binding) {
     if (!path.scope.path.parentPath) {
@@ -43,18 +49,18 @@ export function findScopeBinding(path: NodePath, name: string) {
   return path.scope.getBinding(name)!
 }
 
-export function findTargetPath(path: NodePath, isTargetFunction: (node: any) => boolean) {
+export function findTargetPath<T extends Node = Node>(path: NodePath, isTargetFunction: ((node?: Node | null) => boolean)): NodePath<T> | null {
   let loop = true
-  let parentPath = path
+  let parentPath: NodePath | null = path
   while (loop && parentPath) {
-    if (isTargetFunction(parentPath.parent)) {
+    if (isTargetFunction(parentPath?.parent)) {
       loop = false
     }
     else {
-      parentPath = parentPath.parentPath!
+      parentPath = parentPath.parentPath
     }
   }
-  return parentPath
+  return parentPath?.parentPath as NodePath<T> | null
 }
 
 export function isInteger(node: Node) {
@@ -67,4 +73,36 @@ export function isInteger(node: Node) {
 
 export function isStringNode(node?: Node | null) {
   return isStringLiteral(node) || isTemplateLiteral(node)
+}
+export function isFunctionNode(node?: Node | null) {
+  return isArrowFunctionExpression(node) || isFunctionExpression(node) || isFunctionDeclaration(node)
+}
+export function getFunctionName(path: NodePath) {
+  if (isFunctionDeclaration(path.node)) {
+    return path.node.id?.name
+  }
+  if (isArrowFunctionExpression(path.node) || isFunctionExpression(path.node)) {
+    const node = path.parent
+    if (isVariableDeclarator(node)) {
+      return (node.id as Identifier).name
+    }
+  }
+}
+export function getPkgName(options: Options) {
+  if (options.fromNewFunction) {
+    const { supportNewFunction } = options.autoDecimalOptions
+    if (typeof supportNewFunction !== 'boolean' && supportNewFunction.injectWindow) {
+      return `window.${supportNewFunction.injectWindow}`
+    }
+  }
+  return options.decimalPkgName
+}
+function getObjectIdentifier(node: MemberExpression) {
+  if (isMemberExpression(node.object)) {
+    return getObjectIdentifier(node.object)
+  }
+  if (isIdentifier(node.object)) {
+    return node.object.name
+  }
+  return ''
 }

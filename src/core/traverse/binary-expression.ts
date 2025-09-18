@@ -1,22 +1,26 @@
 import type { Node, NodePath } from '@babel/traverse'
 import type { BinaryExpression, StringLiteral } from '@babel/types'
 import type { MagicStringAST } from 'magic-string-ast'
-import type { Extra, Operator, Options } from '../../types'
+import type { Extra, NewFunctionOptions, Operator, Options } from '../../types'
 import { isNumericLiteral } from '@babel/types'
 import { BASE_COMMENT, LITERALS, OPERATOR, OPERATOR_KEYS } from '../constant'
 import { getTransformed } from '../transform'
-import { isInteger } from '../utils'
+import { getPkgName, isInteger } from '../utils'
 import { getComments } from './comment'
 
 export function resolveBinaryExpression(path: NodePath<BinaryExpression>, options: Options) {
   const extra = (path.node.extra ?? {}) as unknown as Extra
+  const runtimeOptions = {} as Options
   if (options.autoDecimalOptions.toDecimal && !extra.__shouldTransform)
     return
   if (extra.__shouldTransform) {
     path.node.extra = extra.__extra
-    return processBinary(extra.options, path)
+    processBinary(Object.assign(runtimeOptions, extra.options), path)
+    Object.assign(options, { needImport: runtimeOptions.needImport })
+    return
   }
-  return processBinary({ ...options, initial: true }, path)
+  processBinary(Object.assign(runtimeOptions, options, { initial: true }), path)
+  Object.assign(options, { needImport: runtimeOptions.needImport })
 }
 export function processBinary(options: Options, path: NodePath<BinaryExpression>) {
   const { node } = path
@@ -44,12 +48,13 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
       options.integer = true
       return
     }
-    const decimalParts: Array<string | number> = [`new ${options.decimalPkgName}(${left.value})`]
+    const decimalParts: Array<string | number> = [`new ${getPkgName(options)}(${left.value})`]
     decimalParts.push(`.${OPERATOR[operator as Operator]}(${right.value})`)
     if (options.initial && options.callMethod !== 'decimal') {
       decimalParts.push(`.${options.callMethod}${options.callArgs}`)
     }
     options.msa.overwriteNode(node, decimalParts.join(''))
+    resolveNeedImport(options)
     path.skip()
     return
   }
@@ -65,6 +70,7 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
       return
     const content = createDecimalOperation(leftNode.msa, rightNode.msa, operator as Operator, options)
     options.msa.overwriteNode(node, content)
+    resolveNeedImport(options)
     path.skip()
   }
   catch (error) {
@@ -106,7 +112,7 @@ function shouldIgnoreComments(path: NodePath<BinaryExpression>): boolean {
   return comments?.some(comment => comment.value.includes(BASE_COMMENT))
 }
 function createDecimalOperation(leftAst: MagicStringAST, rightAst: MagicStringAST, operator: Operator, options: Options): string {
-  let leftContent = `new ${options.decimalPkgName}(${leftAst.toString()})`
+  let leftContent = `new ${getPkgName(options)}(${leftAst.toString()})`
   if (leftAst.hasChanged()) {
     leftContent = `${leftAst.toString()}`
   }
@@ -124,6 +130,8 @@ function extractNodeValue(node: Node, options: Options) {
       BinaryExpression: path => processBinary(Object.assign(transOptions, {
         decimalPkgName: options.decimalPkgName,
         integer: options.integer,
+        fromNewFunction: options.fromNewFunction,
+        needImport: options.needImport,
       }), path),
     }),
     options.autoDecimalOptions,
@@ -134,4 +142,10 @@ function handleBinaryError(error: unknown): never {
     throw new SyntaxError(`AutoDecimal compile error： ${error.message}`)
   }
   throw error
+}
+function resolveNeedImport(options: Options) {
+  const supportNewFunction = options.autoDecimalOptions.supportNewFunction as NewFunctionOptions
+  if (!options.fromNewFunction || (options.fromNewFunction && !supportNewFunction.injectWindow)) {
+    options.needImport = true
+  }
 }

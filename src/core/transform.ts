@@ -18,6 +18,7 @@ import { NodeTypes } from '@vue/compiler-core'
 import { parse as vueParse } from '@vue/compiler-sfc'
 import { MagicStringAST } from 'magic-string-ast'
 import { BLOCK_COMMENT, DECIMAL_PKG_NAME, NEXT_COMMENT, OPERATOR_KEYS, PATCH_DECLARATION, PKG_NAME } from './constant'
+// import { resolveOptions } from './options'
 import { resolveImportDeclaration, traverseAst } from './traverse'
 
 export function transformAutoDecimal(code: string, autoDecimalOptions: InnerAutoDecimalOptions) {
@@ -206,6 +207,8 @@ export function getTransformed(
     shouldSkip: false,
     callArgs: '()',
     callMethod: 'toNumber',
+    needImport: false,
+    fromNewFunction: false,
   }
   // @ts-expect-error adapter cjs/esm
   const babelTraverse = traverse.default ?? traverse

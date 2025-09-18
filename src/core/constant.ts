@@ -35,6 +35,10 @@ export const DEFAULT_TO_DECIMAL_CONFIG: InnerToDecimalOptions = {
   cm: 'toNumber',
   name: 'toDecimal',
 }
+export const DEFAULT_NEW_FUNCTION_CONFIG = {
+  injectWindow: undefined,
+  toDecimal: false,
+} as const
 export const DECIMAL_RM_LIGHT = Object.freeze({
   ROUND_UP: 0,
   ROUND_DOWN: 1,

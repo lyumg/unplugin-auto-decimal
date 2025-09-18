@@ -12,6 +12,8 @@ export interface Options {
   callArgs: string
   autoDecimalOptions: InnerAutoDecimalOptions
   integer: boolean
+  fromNewFunction?: boolean
+  needImport?: boolean
 }
 export interface ToDecimalConfig extends ToDecimalOptions {
   name?: string
@@ -23,9 +25,7 @@ export interface AutoDecimalOptions {
   toDecimal?: boolean | ToDecimalConfig
   dts?: boolean | string
   decimalName?: string
-  supportNewFunction?: boolean | {
-    toDecimal: false
-  }
+  supportNewFunction?: boolean | NewFunctionOptions
 }
 export type InnerAutoDecimalOptions = Required<AutoDecimalOptions>
 export interface ToDecimalOptions {
@@ -65,6 +65,10 @@ export interface CommentState {
   line: number
   block: boolean
   next: boolean
+}
+export interface NewFunctionOptions {
+  toDecimal?: boolean | ToDecimalConfig
+  injectWindow?: string
 }
 type GetToDecimalReturn<T extends ToDecimalOptions, V extends 'callMethod' | 'cm'> = V extends keyof T
   ? T[V] extends 'toFixed' | 'toString'
