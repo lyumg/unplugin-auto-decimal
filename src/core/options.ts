@@ -21,15 +21,16 @@ export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecima
     : resolve(rootPath, typeof options.dts === 'string' ? options.dts : 'auto-decimal.d.ts')
   options.toDecimal = !options.toDecimal
     ? false
-    : typeof options.toDecimal === 'boolean'
+    : options.toDecimal === true
       ? { ...DEFAULT_TO_DECIMAL_CONFIG }
       : Object.assign({}, DEFAULT_TO_DECIMAL_CONFIG, options.toDecimal)
   options.supportNewFunction = !options.supportNewFunction
     ? false
-    : typeof options.supportNewFunction === 'boolean'
+    : options.supportNewFunction === true
       ? { toDecimal: options.toDecimal }
       : {
           ...DEFAULT_NEW_FUNCTION_CONFIG,
+          toDecimal: options.toDecimal,
           ...options.supportNewFunction,
         }
   return options
