@@ -32,12 +32,9 @@ console.log(result) // 0.30000000000000004
 
 
 ## 配置项
-`supportNewFunction` 接收一个 Boolean 或者 Options。
-
-#### Options
 | 属性               | 描述                  | 类型     | 默认值     | 
 | :----------------:  | :-------------------: | :------: |:------: |
-| toDecimal | 默认继承 [`toDecimal`](./to-decimal.md) 参数，如果设置此参数，则优先使用此参数  |  | - | 
+| toDecimal | 默认继承 [`toDecimal`](./to-decimal.md) 参数，如果设置此参数，则优先使用此参数  | ToDecimalConfig | - | 
 | injectWindow ^(1.4.3) | 将 `Decimal` 挂载到 `window` 中的属性名称 | string | - |
 
 
@@ -91,13 +88,10 @@ export default defineConfig({
 
 :::tip
 目前 `new Function` 支持的调用方式有限（目前所能想到的一些调用方式都已实现），它可以赋值给一个对象属性、数组中的某项、某个变量，但是一定不要太过于复杂，如果你遇到因为某些特殊的调用方式而造成的无法解析，或者无法得到正确的结果时，可以提[issues](https://github.com/lyumg/unplugin-auto-decimal/issues)，我会第一时间解决。
-
-上面提到的调用方式有限，是由于  `new Function` 的中计算表达式的转换是通过参数注入的形式实现的，需要查找 `new Function` 的定义、调用以及作用域等相关信息，所以局限性非常大。如果你想要避免这种局限的话，可以手动将 `decimal.js` 挂载到 `window` 上面。
 :::
 
 ### supportNewFunction.injectWindow
-由于在转换 `new Function` 时，是通过注入参数的方式实现，此方式局限性颇大，如果想 “肆意妄为” 的在 `new Function` 中使用 `Decimal`，
-可以先通过此参数将 `decimal.js` 挂载到 `window` 上，然后通过 `injectWindow` 提供挂载的属性名称即可。
+由于在转换 `new Function` 时，`Decimal` 是通过参数注入的方式实现，需要查找 `new Function` 的定义、调用以及作用域等相关信息，费时费力。那么如果想 “肆意妄为” 的在 `new Function` 中使用 `Decimal`，要怎么办呢？可以先将 `decimal.js` 挂载到 `window` 上，然后通过 `injectWindow` 提供挂载的属性名称即可。
 
 不使用 `injectWindow` 时，通过参数注入 `Decimal`
 ```ts {7,8}
