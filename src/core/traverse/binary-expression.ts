@@ -41,13 +41,13 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
       return
     }
   }
+  // 如果都是整数则跳过
+  if (isInteger(left) && isInteger(right)) {
+    options.integer = true
+    return
+  }
   // 两边都是数字时, 直接转换成 Decimal
-  if (isNumericLiteral(left) && isNumericLiteral(right) && OPERATOR_KEYS.includes(operator)) {
-    // 如果都是整数则跳过
-    if (isInteger(left) && isInteger(right)) {
-      options.integer = true
-      return
-    }
+  if (isNumericLiteral(left) && isNumericLiteral(right)) {
     const decimalParts: Array<string | number> = [`new ${getPkgName(options)}(${left.value})`]
     decimalParts.push(`.${OPERATOR[operator as Operator]}(${right.value})`)
     if (options.initial && options.callMethod !== 'decimal') {
