@@ -42,7 +42,7 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
     }
   }
   // 如果都是整数则跳过
-  if (isInteger(left) && isInteger(right)) {
+  if (isInteger(left, options) && isInteger(right, options)) {
     options.integer = true
     return
   }
@@ -61,8 +61,8 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
   try {
     const leftNode = extractNodeValue(left, options)
     const rightNode = extractNodeValue(right, options)
-    const leftIsInteger = leftNode.integer || isInteger(left)
-    const rightIsInteger = rightNode.integer || isInteger(right)
+    const leftIsInteger = leftNode.integer || isInteger(left, options)
+    const rightIsInteger = rightNode.integer || isInteger(right, options)
     if (leftIsInteger && rightIsInteger) {
       return
     }
