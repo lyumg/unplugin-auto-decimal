@@ -140,6 +140,9 @@ function isNumeric(node: Node, path: NodePath, options: Options, isInteger = fal
   if (isNotNumber) {
     return false
   }
+  if (isInteger && options.autoDecimalOptions.supportString) {
+    return false
+  }
   return isInteger ? !value.toString().includes('.') : true
 }
 function getObjectIdentifierName(node: MemberExpression) {
