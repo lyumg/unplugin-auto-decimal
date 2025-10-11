@@ -5,7 +5,7 @@ import type { Extra, NewFunctionOptions, Operator, Options } from '../../types'
 import { isNumericLiteral } from '@babel/types'
 import { BASE_COMMENT, LITERALS, OPERATOR, OPERATOR_KEYS } from '../constant'
 import { getTransformed } from '../transform'
-import { getNodeValue, getPkgName, isIntegerValue } from '../utils'
+import { getPkgName, isIntegerValue } from '../utils'
 import { getComments } from './comment'
 
 export function resolveBinaryExpression(path: NodePath<BinaryExpression>, options: Options) {

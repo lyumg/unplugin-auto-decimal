@@ -6,9 +6,10 @@ import { DECIMAL_PKG_NAME, PKG_NAME } from '../constant'
 
 export function resolveImportDeclaration(path: NodePath<ImportDeclaration>, options: Options) {
   if (path.node.source.value === PKG_NAME) {
+    const defaultDecimalPkgName = options.autoDecimalOptions.decimalName || DECIMAL_PKG_NAME
     options.imported = path.node.specifiers.some((spec) => {
       if (isImportDefaultSpecifier(spec)) {
-        if (spec.local.name !== DECIMAL_PKG_NAME) {
+        if (spec.local.name !== defaultDecimalPkgName) {
           options.decimalPkgName = spec.local.name
         }
         return true
@@ -18,7 +19,7 @@ export function resolveImportDeclaration(path: NodePath<ImportDeclaration>, opti
         options.decimalPkgName = `${spec.local.name}.${pkgName}`
         return true
       }
-      if (isIdentifier(spec.imported) && spec.imported.name !== DECIMAL_PKG_NAME) {
+      if (isIdentifier(spec.imported) && spec.imported.name !== defaultDecimalPkgName) {
         options.decimalPkgName = spec.local.name
         return true
       }

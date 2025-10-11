@@ -33,7 +33,7 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions: InnerA
 
   const getDecimalPkgName = (scriptSection: SFCScriptBlock | null) => {
     if (!scriptSection)
-      return DECIMAL_PKG_NAME
+      return autoDecimalOptions.decimalName || DECIMAL_PKG_NAME
     const { decimalPkgName } = getTransformed(
       scriptSection.content,
       options => ({
@@ -201,7 +201,7 @@ export function getTransformed(
     autoDecimalOptions,
     imported: false,
     msa,
-    decimalPkgName: DECIMAL_PKG_NAME,
+    decimalPkgName: autoDecimalOptions.decimalName || DECIMAL_PKG_NAME,
     initial: false,
     integer: false,
     shouldSkip: false,
