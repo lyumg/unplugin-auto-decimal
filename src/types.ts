@@ -1,3 +1,4 @@
+import type { NodePath } from '@babel/traverse'
 import type { MagicStringAST } from 'magic-string-ast'
 import type { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './core/constant'
 
@@ -14,6 +15,7 @@ export interface Options {
   integer: boolean
   fromNewFunction?: boolean
   needImport?: boolean
+  ownerPath?: NodePath
 }
 export interface ToDecimalConfig extends ToDecimalOptions {
   name?: string

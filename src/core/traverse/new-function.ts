@@ -5,7 +5,7 @@ import { isArrayExpression, isAssignmentExpression, isCallExpression, isIdentifi
 import { traverseAst } from '.'
 import { RETURN_DECLARATION_CODE, RETURN_DECLARATION_FN, RETURN_DECLARATION_PREFIX } from '../constant'
 import { getTransformed } from '../transform'
-import { findScopeBinding, findTargetPath, getFunctionName, isFunctionNode, isStringNode } from '../utils'
+import { getFunctionName, getScopeBinding, getTargetPath, isFunctionNode, isStringNode } from '../utils'
 
 // TIPS 使用 new Function 时，需要将 __Decimal 以参数的形式传递过去
 export function resolveNewFunctionExpression(path: NodePath<NewExpression>, options: Options) {
@@ -48,7 +48,7 @@ function resolveReturnParam(path: NodePath, node: Node, options: Options) {
   }
   if (isIdentifier(node) || (isCallExpression(node) && isIdentifier(node.callee))) {
     const name = isIdentifier(node) ? node.name : (node.callee as Identifier).name
-    const binding = findScopeBinding(path, name)
+    const binding = getScopeBinding(path, name)
     resolveVariableParam(options, binding, name)
   }
 }
@@ -82,12 +82,12 @@ function resolveAssignmentExpression(path: NodePath, node: Expression, options: 
     return resolveFunction(node, options)
   }
   if (isIdentifier(node)) {
-    const binding = findScopeBinding(path, node.name)
+    const binding = getScopeBinding(path, node.name)
     return resolveVariableParam(options, binding)
   }
   if (isCallExpression(node)) {
     const variableName = (node.callee as Identifier).name
-    const binding = findScopeBinding(path, variableName)
+    const binding = getScopeBinding(path, variableName)
     if (!binding)
       return
     const pathNode = binding.path.node
@@ -117,7 +117,7 @@ function resolveVariableOfParam(binding: Binding, options: Options, name?: strin
   const fnName = getFunctionName(path)
   if (!fnName || !path.parentPath)
     return
-  const parentBinding = findScopeBinding(path.parentPath, fnName)
+  const parentBinding = getScopeBinding(path.parentPath, fnName)
   if (!parentBinding)
     return
   parentBinding.referencePaths.forEach((nodePath) => {
@@ -151,7 +151,7 @@ function provideDecimal(path: NodePath, node: Expression, options: Options) {
     }
     // 如果为 obj.x.x.x or arr[x][x][x] 形式调用
     else if (isMemberExpression(left)) {
-      const binding = findScopeBinding(parentPath, left)
+      const binding = getScopeBinding(parentPath, left)
       if (!binding)
         return
       binding.referencePaths.forEach((reference) => {
@@ -168,12 +168,12 @@ function provideDecimal(path: NodePath, node: Expression, options: Options) {
           return
         }
         if (isMemberExpression(referenceParent)) {
-          const targetPath = findTargetPath(reference, isCallExpression)
+          const targetPath = getTargetPath(reference, isCallExpression)
           if (targetPath) {
             options.msa.update(targetPath.node.end! - 1, targetPath.node.end!, `, ${options.decimalPkgName})`)
           }
           else {
-            const targetPath = findTargetPath(reference, isAssignmentExpression)
+            const targetPath = getTargetPath(reference, isAssignmentExpression)
             if (!targetPath)
               return
             const { right } = targetPath.node as AssignmentExpression
@@ -187,7 +187,7 @@ function provideDecimal(path: NodePath, node: Expression, options: Options) {
     }
   }
   else if (!isVariableDeclarator(parent)) {
-    parentPath = findTargetPath(path, isVariableDeclarator)
+    parentPath = getTargetPath(path, isVariableDeclarator)
     if (!parentPath)
       return
     // TODO MemberExpression 目前不支持变量引用 [variable] 形式调用
@@ -206,7 +206,7 @@ function provideDecimal(path: NodePath, node: Expression, options: Options) {
     if (!callName)
       return
   }
-  const binding = findScopeBinding(path, callName)
+  const binding = getScopeBinding(path, callName)
   if (!binding?.referenced)
     return
   options.msa.update(node.start!, node.end!, decimalParamsContent)
@@ -222,7 +222,7 @@ function provideDecimal(path: NodePath, node: Expression, options: Options) {
         if (targetParams !== params) {
           return
         }
-        const targetPath = findTargetPath(referencePath, isCallExpression)
+        const targetPath = getTargetPath(referencePath, isCallExpression)
         if (!targetPath)
           return
         options.msa.update(targetPath.node.end! - 1, targetPath.node.end!, `, ${options.decimalPkgName})`)

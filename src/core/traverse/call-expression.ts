@@ -5,7 +5,7 @@ import { isBinaryExpression, isIdentifier, isMemberExpression, isObjectExpressio
 import { processBinary, resolveNewFunctionExpression } from '.'
 import { DEFAULT_TO_DECIMAL_CONFIG } from '../constant'
 import { mergeToDecimalOptions } from '../options'
-import { findRootBinaryExprPath, getRoundingMode } from '../utils'
+import { getRootBinaryExprPath, getRoundingMode } from '../utils'
 
 export function resolveCallExpression(path: NodePath<CallExpression>, options: Options) {
   const { autoDecimalOptions } = options
@@ -71,7 +71,7 @@ export function resolveCallExpression(path: NodePath<CallExpression>, options: O
     }
     return
   }
-  const rootPath = findRootBinaryExprPath(path)
+  const rootPath = getRootBinaryExprPath(path)
   const runtimeOptions = {} as Options
   processBinary(Object.assign(runtimeOptions, resolveBinaryOptions), rootPath as NodePath<BinaryExpression>)
   Object.assign(options, { needImport: runtimeOptions.needImport })

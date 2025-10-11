@@ -5,7 +5,7 @@ import type { Extra, NewFunctionOptions, Operator, Options } from '../../types'
 import { isNumericLiteral } from '@babel/types'
 import { BASE_COMMENT, LITERALS, OPERATOR, OPERATOR_KEYS } from '../constant'
 import { getTransformed } from '../transform'
-import { getPkgName, isInteger } from '../utils'
+import { getNodeValue, getPkgName, isIntegerValue } from '../utils'
 import { getComments } from './comment'
 
 export function resolveBinaryExpression(path: NodePath<BinaryExpression>, options: Options) {
@@ -42,7 +42,7 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
     }
   }
   // 如果都是整数则跳过
-  if (isInteger(left, options) && isInteger(right, options)) {
+  if (isIntegerValue(left, path, options) && isIntegerValue(right, path, options)) {
     options.integer = true
     return
   }
@@ -59,10 +59,11 @@ export function processBinary(options: Options, path: NodePath<BinaryExpression>
     return
   }
   try {
+    options.ownerPath ??= path
     const leftNode = extractNodeValue(left, options)
     const rightNode = extractNodeValue(right, options)
-    const leftIsInteger = leftNode.integer || isInteger(left, options)
-    const rightIsInteger = rightNode.integer || isInteger(right, options)
+    const leftIsInteger = leftNode.integer || isIntegerValue(left, path, options)
+    const rightIsInteger = rightNode.integer || isIntegerValue(right, path, options)
     if (leftIsInteger && rightIsInteger) {
       return
     }
@@ -132,6 +133,7 @@ function extractNodeValue(node: Node, options: Options) {
         integer: options.integer,
         fromNewFunction: options.fromNewFunction,
         needImport: options.needImport,
+        ownerPath: options.ownerPath,
       }), path),
     }),
     options.autoDecimalOptions,
