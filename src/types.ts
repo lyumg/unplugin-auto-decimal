@@ -21,24 +21,79 @@ export interface ToDecimalConfig extends ToDecimalOptions {
   name?: string
 }
 export interface AutoDecimalOptions {
+  /**
+   * @desc 支持字符串数字
+   */
   supportString?: boolean
+  /**
+   * @desc 是否启用末尾补 0 的形式
+   *
+   * 当启用后，只有计算表达式的最末端 “+0“ 才会转换
+   */
   tailPatchZero?: boolean
+  /**
+   * @desc 高精度计算库
+   *
+   * @type {decimal.js | decimal.js-light | big.js}
+   */
   package?: Package
+  /**
+   * @desc 启用 toDecimal 来显式转换计算表达式
+   *
+   * 启用后，只有计算表达式使用 .toDecimal() 时，才会转换。
+   */
   toDecimal?: boolean | ToDecimalConfig
+  /**
+   * @desc 是否生成 dts 文件
+   *
+   * 当前项目中存在 typescript 时，默认生成
+   */
   dts?: boolean | string
+  /**
+   * @desc 转换时，Decimal 实例的名称，避免命名冲突。
+   *
+   * @default __Decimal
+   */
   decimalName?: string
+  /**
+   * @desc 支持 new Function 表达式
+   *
+   * 默认情况下，new Function 中的参数不会转换
+   */
   supportNewFunction?: boolean | NewFunctionOptions
 }
 export type InnerAutoDecimalOptions = Required<AutoDecimalOptions>
 export interface ToDecimalOptions {
+  /**
+   * @desc 调用 Decimal 的方法，或者定义是否返回 decimal 实例
+   * @alias cm
+   * @type {toNumber | toString | toFixed | decimal}
+   */
   callMethod?: CallMethod
-  /** callMethod */
+  /**
+   * @desc callMethod 别名
+   */
   cm?: CallMethod
+  /**
+   * @desc 调用 Decimal 的 toFixed 方法时，需要保留的小数位数
+   * @alias p
+   * @type {number}
+   */
   precision?: number
-  /** precision */
+  /**
+   * @desc precision 别名
+   */
   p?: number
+  /**
+   * @desc 调用 Decimal 的 toFixed 方法时，使用的舍入模式
+   * @alias rm
+   * @type {RoundingModes | number}
+   * @tutorial https://mikemcl.github.io/decimal.js/#modes
+   */
   roundingModes?: RoundingModes | number
-  /** roundingModes */
+  /**
+   * @desc roundingModes 别名
+   */
   rm?: RoundingModes | number
 }
 export type InnerToDecimalOptions = Required<ToDecimalConfig>
