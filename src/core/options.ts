@@ -43,6 +43,7 @@ export function mergeToDecimalOptions(rawOptions: InnerToDecimalOptions, toDecim
   const callMethod = toDecimalOptions.callMethod ?? toDecimalOptions.cm ?? rawOptions.callMethod
   const roundingModes = toDecimalOptions.roundingModes ?? toDecimalOptions.rm ?? rawOptions.roundingModes
   return Object.assign(rawOptions, {
+    ...toDecimalOptions,
     precision,
     callMethod,
     roundingModes,
