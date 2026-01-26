@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin, localIconLoader } from 'vitepress-plugin-group-icons'
+import { version } from '../../package.json'
 import tag from './plugins/tag'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -14,6 +15,13 @@ export default defineConfig({
     nav: [
       // { text: 'Home', link: '/' },
       { text: '指南', link: '/guide/what-is-auto-decimal' },
+      {
+        text: version,
+        items: [{
+          text: 'Release Notes',
+          link: 'https://github.com/lyumg/unplugin-auto-decimal/releases',
+        }],
+      },
     ],
     logo: {
       light: '/logo.svg',
