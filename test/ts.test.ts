@@ -4,9 +4,9 @@ import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 import { transform } from '../src/core/unplugin'
 
-describe('transform', async () => {
-  const root = resolve(__dirname, 'fixtures')
-  const files = await fastGlob(['*.ts', '!*function.ts', '!*to-decimal.ts', '!*inject-window.ts'], {
+describe('transform ts', async () => {
+  const root = resolve(__dirname, 'fixtures/ts')
+  const files = await fastGlob(['*.ts'], {
     cwd: root,
     onlyFiles: true,
   })

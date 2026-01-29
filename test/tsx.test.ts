@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { transform } from '../src/core/unplugin'
 
 describe('transform tsx', async () => {
-  const root = resolve(__dirname, 'fixtures')
+  const root = resolve(__dirname, 'fixtures/tsx')
   const files = await fastGlob('*.tsx', {
     cwd: root,
     onlyFiles: true,

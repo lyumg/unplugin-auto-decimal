@@ -4,9 +4,9 @@ import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 import { transform } from '../src/core/unplugin'
 
-describe('transform', async () => {
-  const root = resolve(__dirname, 'fixtures')
-  const files = await fastGlob('to-decimal.ts', {
+describe('transform to decimal', async () => {
+  const root = resolve(__dirname, 'fixtures/to-decimal')
+  const files = await fastGlob('*.ts', {
     cwd: root,
     onlyFiles: true,
   })

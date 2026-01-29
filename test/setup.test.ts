@@ -4,8 +4,8 @@ import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 import { transform } from '../src/core/unplugin'
 
-describe('transform', async () => {
-  const root = resolve(__dirname, 'fixtures')
+describe('transform vue setup', async () => {
+  const root = resolve(__dirname, 'fixtures/vue')
   const files = await fastGlob('*setup.vue', {
     cwd: root,
     onlyFiles: true,

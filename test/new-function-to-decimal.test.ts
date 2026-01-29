@@ -5,9 +5,9 @@ import { describe, expect, it } from 'vitest'
 import { resolveOptions } from '../src/core/options'
 import { transform } from '../src/core/unplugin'
 
-describe('transform', async () => {
-  const root = resolve(__dirname, 'fixtures')
-  const files = await fastGlob('new-function-to-decimal.ts', {
+describe('transform new function to decimal', async () => {
+  const root = resolve(__dirname, 'fixtures/new-function')
+  const files = await fastGlob('*to-decimal.ts', {
     cwd: root,
     onlyFiles: true,
   })

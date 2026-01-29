@@ -4,8 +4,8 @@ import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 import { transform } from '../src/core/unplugin'
 
-describe('transform', async () => {
-  const root = resolve(__dirname, 'fixtures')
+describe('transform new function', async () => {
+  const root = resolve(__dirname, 'fixtures/new-function')
   const files = await fastGlob('*-function.ts', {
     cwd: root,
     onlyFiles: true,
