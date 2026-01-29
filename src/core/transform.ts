@@ -194,7 +194,7 @@ export function getTransformed(
 ) {
   const ast = parse(code, {
     sourceType: 'module',
-    plugins: ['typescript', 'jsx'],
+    plugins: ['typescript', 'jsx', 'decorators'],
   })
   const msa = new MagicStringAST(code)
   const options: Options = {
