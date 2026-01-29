@@ -16,9 +16,6 @@ const defaultOptions: InnerAutoDecimalOptions = {
 }
 export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecimalOptions {
   const options = Object.assign({}, defaultOptions, rawOptions)
-  options.dts = !options.dts
-    ? false
-    : resolve(rootPath, typeof options.dts === 'string' ? options.dts : 'auto-decimal.d.ts')
   options.toDecimal = !options.toDecimal
     ? false
     : options.toDecimal === true
@@ -33,6 +30,10 @@ export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecima
           toDecimal: options.toDecimal,
           ...options.supportNewFunction,
         }
+
+  options.dts = (!options.toDecimal || !options.dts)
+    ? false
+    : resolve(rootPath, typeof options.dts === 'string' ? options.dts : 'auto-decimal.d.ts')
   return options
 }
 export function mergeToDecimalOptions(rawOptions: InnerToDecimalOptions, toDecimalOptions: ToDecimalOptions | boolean) {
