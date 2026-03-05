@@ -1,5 +1,5 @@
 import { promises as fs } from 'node:fs'
-import { resolve } from 'node:path'
+import { extname, resolve } from 'node:path'
 import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 import { transform } from '../src/core/unplugin'
@@ -20,6 +20,7 @@ describe('transform tsx', async () => {
       dts: false,
       decimalName: '__Decimal',
       supportNewFunction: false,
+      ext: extname(file),
     })?.code ?? fixture
     it(`
         tsx normal
