@@ -1,3 +1,4 @@
+import type { ParserPlugin } from '@babel/parser'
 import type { TraverseOptions } from '@babel/traverse'
 import type {
   CommentNode,
@@ -192,9 +193,17 @@ export function getTransformed(
   traverseOptions: (options: Options) => TraverseOptions,
   autoDecimalOptions: InnerAutoDecimalOptions,
 ) {
+  const plugins: ParserPlugin[] = []
+  if (autoDecimalOptions.ext.startsWith('.jsx') || autoDecimalOptions.ext.startsWith('.tsx')) {
+    plugins.push('jsx')
+  }
+  if (autoDecimalOptions.dts || autoDecimalOptions.ext.startsWith('.ts')) {
+    plugins.push('typescript')
+    plugins.push('decorators')
+  }
   const ast = parse(code, {
     sourceType: 'module',
-    plugins: ['typescript', 'jsx', 'decorators'],
+    plugins,
   })
   const msa = new MagicStringAST(code)
   const options: Options = {

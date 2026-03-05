@@ -62,7 +62,9 @@ export interface AutoDecimalOptions {
    */
   supportNewFunction?: boolean | NewFunctionOptions
 }
-export type InnerAutoDecimalOptions = Required<AutoDecimalOptions>
+export type InnerAutoDecimalOptions = Required<AutoDecimalOptions> & {
+  ext: string
+}
 export interface ToDecimalOptions {
   /**
    * @desc 调用 Decimal 的方法，或者定义是否返回 decimal 实例
