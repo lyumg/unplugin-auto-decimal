@@ -137,10 +137,7 @@ function isNumeric(node: Node, path: NodePath, options: Options, isInteger = fal
     return false
   }
   const isNotNumber = Number.isNaN(Number(value))
-  if (isNotNumber) {
-    return false
-  }
-  if (isInteger && options.autoDecimalOptions.supportString) {
+  if (isNotNumber || typeof value === 'string') {
     return false
   }
   return isInteger ? !value.toString().includes('.') : true
