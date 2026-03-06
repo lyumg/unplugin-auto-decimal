@@ -2,7 +2,7 @@ import type { AutoDecimalOptions, InnerAutoDecimalOptions, InnerToDecimalOptions
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { isPackageExists } from 'local-pkg'
-import { DEFAULT_NEW_FUNCTION_CONFIG, DEFAULT_TO_DECIMAL_CONFIG } from './constant'
+import { DEFAULT_NEW_FUNCTION_CONFIG, DEFAULT_TO_DECIMAL_CONFIG, REGEX_NODE_MODULES, REGEX_SUPPORTED_EXT, REGEX_VUE } from './constant'
 
 const rootPath = process.cwd()
 const defaultOptions: InnerAutoDecimalOptions = {
@@ -13,6 +13,9 @@ const defaultOptions: InnerAutoDecimalOptions = {
   dts: isPackageExists('typescript'),
   supportNewFunction: false,
   decimalName: '__Decimal',
+  includes: [REGEX_SUPPORTED_EXT, ...REGEX_VUE],
+  excludes: [REGEX_NODE_MODULES],
+  ext: '',
 }
 export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecimalOptions {
   const options = Object.assign({}, defaultOptions, rawOptions)

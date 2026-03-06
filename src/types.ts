@@ -1,4 +1,5 @@
 import type { NodePath } from '@babel/traverse'
+import type { FilterPattern } from '@rollup/pluginutils'
 import type { MagicStringAST } from 'magic-string-ast'
 import type { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './core/constant'
 
@@ -61,6 +62,16 @@ export interface AutoDecimalOptions {
    * 默认情况下，new Function 中的参数不会转换
    */
   supportNewFunction?: boolean | NewFunctionOptions
+  /**
+   * @desc 包含的文件
+   * @default *.(cjs|mjs|js|ts|mts|jsx|tsx|vue)
+   */
+  includes?: FilterPattern
+  /**
+   * @desc 排除的文件
+   * @default node_modules
+   */
+  excludes?: FilterPattern
 }
 export type InnerAutoDecimalOptions = Required<AutoDecimalOptions> & {
   ext: string

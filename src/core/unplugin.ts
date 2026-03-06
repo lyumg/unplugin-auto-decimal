@@ -27,11 +27,8 @@ export function transform(code: string, id: string, options: InnerAutoDecimalOpt
   }
 }
 export default createUnplugin<AutoDecimalOptions | undefined>((rawOptions) => {
-  const filter = createFilter(
-    [REGEX_SUPPORTED_EXT, ...REGEX_VUE],
-    [REGEX_NODE_MODULES],
-  )
   const options = resolveOptions(rawOptions)
+  const filter = createFilter(options.includes, options.excludes)
   if (options.dts) {
     generateDeclaration(options)
   }
