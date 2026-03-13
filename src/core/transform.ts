@@ -33,14 +33,19 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions: InnerA
   const msa = new MagicStringAST(code)
 
   const getDecimalPkgName = (scriptSection: SFCScriptBlock | null) => {
-    if (!scriptSection)
+    if (!scriptSection) {
       return autoDecimalOptions.decimalName || DECIMAL_PKG_NAME
+    }
+    const lang = scriptSection.lang
     const { decimalPkgName } = getTransformed(
       scriptSection.content,
       options => ({
         ImportDeclaration: path => resolveImportDeclaration(path, options),
       }),
-      autoDecimalOptions,
+      {
+        ...autoDecimalOptions,
+        ext: lang ? `.${lang}` : autoDecimalOptions.ext,
+      },
     )
     return decimalPkgName
   }
@@ -160,11 +165,15 @@ export function transformVueAutoDecimal(code: string, autoDecimalOptions: InnerA
   const parseScript = (scriptSection: SFCScriptBlock | null) => {
     if (!scriptSection)
       return
+    const lang = scriptSection.lang
     const { start, end } = scriptSection.loc
     const { msa: transformedMsa, imported } = getTransformed(
       scriptSection.content,
       options => traverseAst(options, true, needsImport),
-      autoDecimalOptions,
+      {
+        ...autoDecimalOptions,
+        ext: lang ? `.${lang}` : autoDecimalOptions.ext,
+      },
     )
     if (needsImport) {
       needsImport = !imported
