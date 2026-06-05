@@ -1,3 +1,8 @@
+/*
+ * @Date: 2026-01-26 10:15:45
+ * @Author: lyumg
+ * @FilePath: /unplugin-auto-decimal/docs/.vitepress/config.mts
+ */
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin, localIconLoader } from 'vitepress-plugin-group-icons'
 import { version } from '../../package.json'
@@ -38,6 +43,7 @@ export default defineConfig({
           { text: '什么是 AutoDecimal？', link: '/guide/what-is-auto-decimal' },
           { text: '快速开始', link: '/guide/getting-started' },
           { text: '配置选项', link: '/guide/api', items: [
+            { text: 'includes/excludes', link: '/guide/api/includes' },
             { text: 'tailPatchZero', link: '/guide/api/tail-patch-zero' },
             { text: 'supportString', link: '/guide/api/support-string' },
             { text: 'toDecimal', link: '/guide/api/to-decimal' },
