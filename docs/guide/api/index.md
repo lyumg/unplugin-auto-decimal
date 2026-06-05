@@ -6,7 +6,10 @@
 
 | 属性               | 描述     | 类型     | 默认值     | 
 | ----------------  | :------: | :------: |:------: |
-| [`tailPatchZero`](./tail-patch-zero.md) | 区分计算表达式和字符串拼接 | boolean | false | 
+| [`includes`](./includes.md) ^(1.5.0) | 包含的文件 | FilterPattern | .cjs .mjs .js .ts .mts .jsx .tsx .vue |
+| [`excludes`](./includes.md) ^(1.5.0) | 排除的文件 | FilterPattern | node_modules |
+| decorator ^(1.5.0) | 是否支持装饰器 | boolean | false |
+|| [`tailPatchZero`](./tail-patch-zero.md) | 区分计算表达式和字符串拼接 | boolean | false | 
 | [`supportString`](./support-string.md) | 支持字符串计算 | boolean | false |
 | package | 高精度计算库 | `decimal.js`、`decimal.js-light`、`big.js` | `decimal.js-light` |
 | [`toDecimal`](./to-decimal.md) ^(1.2.0) | 使用 `toDecimal` 进行转换 | boolean \| options  | false |
