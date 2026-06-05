@@ -208,7 +208,9 @@ export function getTransformed(
   }
   if (autoDecimalOptions.dts || autoDecimalOptions.ext.startsWith('.ts')) {
     plugins.push('typescript')
-    plugins.push('decorators')
+    if (autoDecimalOptions.decorator) {
+      plugins.push('decorators')
+    }
   }
   const ast = parse(code, {
     sourceType: 'module',

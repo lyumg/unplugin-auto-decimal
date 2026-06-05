@@ -1,10 +1,15 @@
+/*
+ * @Date: 2024-12-17 15:43:01
+ * @Author: lyumg
+ * @FilePath: /unplugin-auto-decimal/src/core/unplugin.ts
+ */
 import type { MagicStringAST } from 'magic-string-ast'
 import type { AutoDecimalOptions, InnerAutoDecimalOptions } from '../types'
 import { extname } from 'node:path'
 import { createFilter } from '@rollup/pluginutils'
 import { isPackageExists } from 'local-pkg'
 import { createUnplugin } from 'unplugin'
-import { PKG_NAME, REGEX_NODE_MODULES, REGEX_SUPPORTED_EXT, REGEX_VUE } from './constant'
+import { PKG_NAME, REGEX_VUE } from './constant'
 import { generateDeclaration } from './generate'
 import { resolveOptions } from './options'
 import { transformAutoDecimal, transformVueAutoDecimal } from './transform'

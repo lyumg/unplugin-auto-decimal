@@ -1,3 +1,9 @@
+/*
+ * @Date: 2026-01-29 13:34:14
+ * @Author: lyumg
+ * @FilePath: /unplugin-auto-decimal/test/decorator.test.ts
+ */
+import type { InnerAutoDecimalOptions } from '../src/types'
 import { promises as fs } from 'node:fs'
 import { extname, resolve } from 'node:path'
 import fastGlob from 'fast-glob'
@@ -19,9 +25,10 @@ describe('transform decorator', async () => {
     toDecimal: false,
     dts: false,
     decimalName: '__Decimal',
+    decorator: true,
     supportNewFunction: false,
     ext: extname(file),
-  })?.code ?? fixture
+  } as InnerAutoDecimalOptions)?.code ?? fixture
   it(`
         @Log
         export class Test {

@@ -51,6 +51,10 @@ export interface AutoDecimalOptions {
    */
   dts?: boolean | string
   /**
+   * @desc 是否启用装饰器
+   */
+  decorator?: boolean
+  /**
    * @desc 转换时，Decimal 实例的名称，避免命名冲突。
    *
    * @default __Decimal

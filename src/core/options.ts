@@ -1,3 +1,8 @@
+/*
+ * @Date: 2026-03-03 13:58:35
+ * @Author: lyumg
+ * @FilePath: /unplugin-auto-decimal/src/core/options.ts
+ */
 import type { AutoDecimalOptions, InnerAutoDecimalOptions, InnerToDecimalOptions, ToDecimalOptions } from '../types'
 import { resolve } from 'node:path'
 import process from 'node:process'
@@ -11,6 +16,7 @@ const defaultOptions: InnerAutoDecimalOptions = {
   package: 'decimal.js-light',
   toDecimal: false,
   dts: isPackageExists('typescript'),
+  decorator: false,
   supportNewFunction: false,
   decimalName: '__Decimal',
   includes: [REGEX_SUPPORTED_EXT, ...REGEX_VUE],
