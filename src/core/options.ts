@@ -1,16 +1,28 @@
+import type {
+  AutoDecimalOptions,
+  InnerAutoDecimalOptions,
+  InnerToDecimalOptions,
+  ToDecimalConfig,
+  ToDecimalOptions,
+} from '../types'
+import { resolve } from 'node:path'
+import process from 'node:process'
+import { isPackageExists } from 'local-pkg'
+import {
+  DECIMAL_PKG_NAME,
+  DEFAULT_NEW_FUNCTION_CONFIG,
+  DEFAULT_TO_DECIMAL_CONFIG,
+  REGEX_NODE_MODULES,
+  REGEX_SUPPORTED_EXT,
+  REGEX_VUE,
+} from './constant'
 /*
  * @Date: 2026-03-03 13:58:35
  * @Author: lyumg
  * @FilePath: /unplugin-auto-decimal/src/core/options.ts
  */
-import type { AutoDecimalOptions, InnerAutoDecimalOptions, InnerToDecimalOptions, ToDecimalOptions } from '../types'
-import { resolve } from 'node:path'
-import process from 'node:process'
-import { isPackageExists } from 'local-pkg'
-import { DEFAULT_NEW_FUNCTION_CONFIG, DEFAULT_TO_DECIMAL_CONFIG, REGEX_NODE_MODULES, REGEX_SUPPORTED_EXT, REGEX_VUE } from './constant'
-
 const rootPath = process.cwd()
-const defaultOptions: InnerAutoDecimalOptions = {
+const defaultOptions: AutoDecimalOptions = {
   supportString: false,
   tailPatchZero: false,
   package: 'decimal.js-light',
@@ -18,10 +30,9 @@ const defaultOptions: InnerAutoDecimalOptions = {
   dts: isPackageExists('typescript'),
   decorator: false,
   supportNewFunction: false,
-  decimalName: '__Decimal',
-  includes: [REGEX_SUPPORTED_EXT, ...REGEX_VUE],
+  decimalName: DECIMAL_PKG_NAME,
+  includes: [REGEX_SUPPORTED_EXT, REGEX_VUE],
   excludes: [REGEX_NODE_MODULES],
-  ext: '',
 }
 export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecimalOptions {
   const options = Object.assign({}, defaultOptions, rawOptions)
@@ -29,21 +40,24 @@ export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecima
     ? false
     : options.toDecimal === true
       ? { ...DEFAULT_TO_DECIMAL_CONFIG }
-      : Object.assign({}, DEFAULT_TO_DECIMAL_CONFIG, options.toDecimal)
+      : mergeToDecimalOptions(DEFAULT_TO_DECIMAL_CONFIG, options.toDecimal)
   options.supportNewFunction = !options.supportNewFunction
     ? false
     : options.supportNewFunction === true
       ? { toDecimal: options.toDecimal }
       : {
           ...DEFAULT_NEW_FUNCTION_CONFIG,
-          toDecimal: options.toDecimal,
           ...options.supportNewFunction,
+          toDecimal: mergeToDecimalOptions(
+            (options.toDecimal || DEFAULT_TO_DECIMAL_CONFIG) as Required<ToDecimalConfig>,
+            options.supportNewFunction.toDecimal as ToDecimalOptions,
+          ),
         }
 
   options.dts = (!options.toDecimal || !options.dts)
     ? false
     : resolve(rootPath, typeof options.dts === 'string' ? options.dts : 'auto-decimal.d.ts')
-  return options
+  return options as InnerAutoDecimalOptions
 }
 export function mergeToDecimalOptions(rawOptions: InnerToDecimalOptions, toDecimalOptions: ToDecimalOptions | boolean) {
   if (typeof toDecimalOptions === 'boolean') {
@@ -52,7 +66,7 @@ export function mergeToDecimalOptions(rawOptions: InnerToDecimalOptions, toDecim
   const precision = toDecimalOptions.precision ?? toDecimalOptions.p ?? rawOptions.precision
   const callMethod = toDecimalOptions.callMethod ?? toDecimalOptions.cm ?? rawOptions.callMethod
   const roundingModes = toDecimalOptions.roundingModes ?? toDecimalOptions.rm ?? rawOptions.roundingModes
-  return Object.assign(rawOptions, {
+  return Object.assign({}, rawOptions, {
     ...toDecimalOptions,
     precision,
     callMethod,
