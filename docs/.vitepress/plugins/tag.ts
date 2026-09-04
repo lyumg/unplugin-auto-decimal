@@ -1,3 +1,8 @@
+/*
+ * @Date: 2026-09-02 17:15:53
+ * @Author: lyumg
+ * @FilePath: /unplugin-auto-decimal/docs/.vitepress/plugins/tag.ts
+ */
 import type { MarkdownRenderer } from 'vitepress'
 
 export default (md: MarkdownRenderer): void => {
@@ -21,10 +26,12 @@ export default (md: MarkdownRenderer): void => {
      * Add styles for some special tags
      * vitepress/styles/content/tag-content.scss
      */
-    const tagClass = ['beta', 'deprecated', 'a11y', 'required'].includes(value)
+    const targetTag = ['beta', 'deprecated', 'a11y', 'required']
+    const tagClass = targetTag.includes(value)
       ? value
-      : ''
-    token.content = `<span class="vp-tag ${tagClass}">${value}</span>`
+      : targetTag.find(target => value.includes(target))
+
+    token.content = `<span class="vp-tag ${tagClass || ''}">${value}</span>`
     token.level = state.level
     state.pos += result[0].length
 

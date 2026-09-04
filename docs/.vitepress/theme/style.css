@@ -3,6 +3,7 @@
   --warning: #eba34a;
   --danger: #fd6d6f;
   --success: #58c348;
+  --deprecated: #df0000;
   --vp-layout-max-width: 1600px;
 }
 .VPDoc.has-aside .content-container {
@@ -31,8 +32,8 @@
     --vp-tag-border-color: var(--danger);
   }
   &.deprecated {
-    --vp-tag-color: var(--warning);
-    --vp-tag-border-color: var(--warning);
+    --vp-tag-color: var(--deprecated);
+    --vp-tag-border-color: var(--deprecated);
   }
   &.required {
     --vp-tag-color: var(--success);
