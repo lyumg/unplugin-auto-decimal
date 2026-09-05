@@ -1,8 +1,9 @@
 /*
- * @Date: 2026-01-26 10:15:45
- * @Author: lyumg
+* @Date: 2026-01-26 10:15:45
+* @Author: lyumg
  * @FilePath: /unplugin-auto-decimal/docs/.vitepress/config.mts
- */
+*/
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin, localIconLoader } from 'vitepress-plugin-group-icons'
 import { version } from '../../package.json'
@@ -43,11 +44,11 @@ export default defineConfig({
           { text: '什么是 AutoDecimal？', link: '/guide/what-is-auto-decimal' },
           { text: '快速开始', link: '/guide/getting-started' },
           { text: '配置选项', link: '/guide/api', items: [
-            { text: 'includes/excludes', link: '/guide/api/includes' },
+            { text: 'includes/excludes ^(1.5.0)', link: '/guide/api/includes' },
             { text: 'tailPatchZero', link: '/guide/api/tail-patch-zero' },
             { text: 'supportString', link: '/guide/api/support-string' },
-            { text: 'toDecimal', link: '/guide/api/to-decimal' },
-            { text: 'supportNewFunction', link: '/guide/api/new-function' },
+            { text: 'toDecimal ^(1.2.0)', link: '/guide/api/to-decimal' },
+            { text: 'supportNewFunction ^(1.4.0)', link: '/guide/api/new-function' },
           ] },
           { text: '跳过转换', link: '/guide/comment', items: [
             { text: 'splicing', link: '/guide/comment/splicing' },
@@ -70,6 +71,16 @@ export default defineConfig({
     },
   },
   vite: {
+    resolve: {
+      alias: [
+        {
+          find: /^.*\/VPSidebar\.vue$/,
+          replacement: fileURLToPath(
+            new URL('./components/VPSidebar.vue', import.meta.url),
+          ),
+        },
+      ],
+    },
     plugins: [
       // @ts-expect-error plugins
       groupIconVitePlugin({

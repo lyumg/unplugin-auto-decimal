@@ -5,6 +5,7 @@
   --success: #58c348;
   --deprecated: #df0000;
   --vp-layout-max-width: 1600px;
+  --vp-sidebar-width: 300px;
 }
 .VPDoc.has-aside .content-container {
   max-width: 100% !important;
@@ -39,4 +40,11 @@
     --vp-tag-color: var(--success);
     --vp-tag-border-color: var(--success);
   }
+}
+.flex {
+  display: flex;
+  align-items: center;
+}
+.flex .vp-tag {
+  margin-left: 5px;
 }
