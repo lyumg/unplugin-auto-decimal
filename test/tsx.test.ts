@@ -1,8 +1,13 @@
+/*
+* @Date: 2026-09-02 17:15:53
+* @Author: lyumg
+ * @FilePath: /unplugin-auto-decimal/test/tsx.test.ts
+*/
 import { promises as fs } from 'node:fs'
-import { extname, resolve } from 'node:path'
+import { resolve } from 'node:path'
 import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
-import { transform } from '../src/core/unplugin'
+import { Context } from '../src/core/context'
 
 describe('transform tsx', async () => {
   const root = resolve(__dirname, 'fixtures/tsx')
@@ -12,7 +17,7 @@ describe('transform tsx', async () => {
   })
   for (const file of files) {
     const fixture = await fs.readFile(resolve(root, file), 'utf-8')
-    const transformedCode = transform(fixture, file, {
+    const ctx = new Context(file, {
       supportString: true,
       tailPatchZero: false,
       package: 'decimal.js-light',
@@ -20,8 +25,8 @@ describe('transform tsx', async () => {
       dts: false,
       decimalName: '__Decimal',
       supportNewFunction: false,
-      ext: extname(file),
-    })?.code ?? fixture
+    })
+    const transformedCode = ctx.transform(fixture)?.code ?? fixture
     it(`
         tsx normal
         input: 

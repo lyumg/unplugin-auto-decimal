@@ -1,9 +1,14 @@
+/*
+ * @Date: 2026-09-02 17:15:53
+ * @Author: lyumg
+ * @FilePath: /unplugin-auto-decimal/test/new-function-to-decimal.test.ts
+ */
 import { promises as fs } from 'node:fs'
 import { resolve } from 'node:path'
 import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
+import { Context } from '../src/core/context'
 import { resolveOptions } from '../src/core/options'
-import { transform } from '../src/core/unplugin'
 
 describe('transform new function to decimal', async () => {
   const root = resolve(__dirname, 'fixtures/new-function')
@@ -13,7 +18,7 @@ describe('transform new function to decimal', async () => {
   })
   for (const file of files) {
     const fixture = await fs.readFile(resolve(root, file), 'utf-8')
-    const transformedCode = transform(fixture, file, resolveOptions({
+    const ctx = new Context(file, resolveOptions({
       supportString: true,
       tailPatchZero: false,
       package: 'decimal.js-light',
@@ -21,7 +26,8 @@ describe('transform new function to decimal', async () => {
       dts: false,
       decimalName: '__Decimal',
       supportNewFunction: true,
-    }))?.code ?? fixture
+    }))
+    const transformedCode = ctx.transform(fixture)?.code ?? fixture
     it(`
       new Function toDecimal
       input:

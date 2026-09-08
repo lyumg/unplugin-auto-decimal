@@ -1,8 +1,13 @@
+/*
+ * @Date: 2026-09-02 17:15:53
+ * @Author: lyumg
+ * @FilePath: /unplugin-auto-decimal/test/to-decimal.test.ts
+ */
 import { promises as fs } from 'node:fs'
 import { resolve } from 'node:path'
 import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
-import { transform } from '../src/core/unplugin'
+import { Context } from '../src/core/context'
 
 describe('transform to decimal', async () => {
   const root = resolve(__dirname, 'fixtures/to-decimal')
@@ -12,7 +17,7 @@ describe('transform to decimal', async () => {
   })
   for (const file of files) {
     const fixture = await fs.readFile(resolve(root, file), 'utf-8')
-    const transformedCode = transform(fixture, file, {
+    const ctx = new Context(file, {
       supportString: false,
       tailPatchZero: false,
       package: 'decimal.js-light',
@@ -20,7 +25,8 @@ describe('transform to decimal', async () => {
       dts: false,
       decimalName: '__Decimal',
       supportNewFunction: false,
-    })?.code ?? fixture
+    })
+    const transformedCode = ctx.transform(fixture)?.code ?? fixture
     it(`
       ts
       input:
@@ -38,10 +44,10 @@ describe('transform to decimal', async () => {
         }
       output:
         function _test() {
-          const _ad = new __Decimal(0.111).plus(0.222).toFixed(3, 4)
+          const _ad = new __Decimal(0.111).plus(0.222)[\'toFixed\'](3, 4)
         }
       `, () => {
-      expect(transformedCode).toMatch('const _ad = new __Decimal(0.111).plus(0.222).toFixed(3, 4)')
+      expect(transformedCode).toMatch('const _ad = new __Decimal(0.111).plus(0.222)[\'toFixed\'](3, 4)')
     })
     it(`
       ts Class
@@ -61,9 +67,9 @@ describe('transform to decimal', async () => {
       input:
         const _arr = [0, 0.1 + 0.2.toDecimal({ callMethod: 'toString' }), 3]
       output:
-        const _arr = [0, new __Decimal(0.1).plus(0.2).toString(), 3]
+        const _arr = [0, new __Decimal(0.1).plus(0.2)[\'toString\'](), 3]
       `, () => {
-      expect(transformedCode).toMatch('const _arr = [0, new __Decimal(0.1).plus(0.2).toString(), 3]')
+      expect(transformedCode).toMatch('const _arr = [0, new __Decimal(0.1).plus(0.2)[\'toString\'](), 3]')
     })
     it(`
       ts return decimal
