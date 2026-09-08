@@ -12,12 +12,9 @@ import {
   DECIMAL_PKG_NAME,
   DEFAULT_NEW_FUNCTION_CONFIG,
   DEFAULT_TO_DECIMAL_CONFIG,
-  REGEX_NODE_MODULES,
-  REGEX_SUPPORTED_EXT,
-  REGEX_VUE,
 } from './constant'
 /*
- * @Date: 2026-03-03 13:58:35
+ * @Date: 2026-09-02 17:23:25
  * @Author: lyumg
  * @FilePath: /unplugin-auto-decimal/src/core/options.ts
  */
@@ -31,8 +28,6 @@ const defaultOptions: AutoDecimalOptions = {
   decorator: false,
   supportNewFunction: false,
   decimalName: DECIMAL_PKG_NAME,
-  includes: [REGEX_SUPPORTED_EXT, REGEX_VUE],
-  excludes: [REGEX_NODE_MODULES],
 }
 export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecimalOptions {
   const options = Object.assign({}, defaultOptions, rawOptions)
@@ -48,10 +43,12 @@ export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecima
       : {
           ...DEFAULT_NEW_FUNCTION_CONFIG,
           ...options.supportNewFunction,
-          toDecimal: mergeToDecimalOptions(
-            (options.toDecimal || DEFAULT_TO_DECIMAL_CONFIG) as Required<ToDecimalConfig>,
-            options.supportNewFunction.toDecimal as ToDecimalOptions,
-          ),
+          toDecimal: options.supportNewFunction.toDecimal || options.toDecimal
+            ? mergeToDecimalOptions(
+                (options.toDecimal || DEFAULT_TO_DECIMAL_CONFIG) as Required<ToDecimalConfig>,
+                options.supportNewFunction.toDecimal as ToDecimalOptions,
+              )
+            : false,
         }
 
   options.dts = (!options.toDecimal || !options.dts)
@@ -60,7 +57,7 @@ export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecima
   return options as InnerAutoDecimalOptions
 }
 export function mergeToDecimalOptions(rawOptions: InnerToDecimalOptions, toDecimalOptions: ToDecimalOptions | boolean) {
-  if (typeof toDecimalOptions === 'boolean') {
+  if (!toDecimalOptions || typeof toDecimalOptions === 'boolean') {
     return rawOptions
   }
   const precision = toDecimalOptions.precision ?? toDecimalOptions.p ?? rawOptions.precision

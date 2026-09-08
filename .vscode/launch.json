@@ -9,7 +9,7 @@
         "--loader=ts-node/esm",
         "--experimental-specifier-resolution=node"
       ],
-      "args": ["${workspaceFolder}/src/core/transform.ts"],
+      "args": ["${workspaceFolder}/src/core/transformer.ts"],
       "sourceMaps": true
     }
   ]

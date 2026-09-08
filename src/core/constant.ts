@@ -22,9 +22,9 @@ export const OPERATOR = {
 
 export const OPERATOR_KEYS = Object.keys(OPERATOR)
 export const REGEX_SUPPORTED_EXT = /\.([cm]?[jt]s)x?$/
-export const REGEX_VUE = [/\.vue$/, /\.vue\?vue/, /\.vue\?v=/]
+export const REGEX_VUE = /\.vue($|\?vue|\?v=)/
 export const REGEX_NODE_MODULES = /node_modules/
-export const DECIMAL_PKG_NAME = '__Decimal'
+export const DECIMAL_PKG_NAME = 'Decimal'
 export const PKG_NAME = 'decimal.js-light'
 export const DEFAULT_TO_DECIMAL_CONFIG: InnerToDecimalOptions = {
   precision: 2,

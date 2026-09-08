@@ -1,23 +1,7 @@
-import type { NodePath } from '@babel/traverse'
 import type { FilterPattern } from '@rollup/pluginutils'
-import type { MagicStringAST } from 'magic-string-ast'
 import type { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './core/constant'
 
 export interface AutoDecimal {}
-export interface Options {
-  shouldSkip: boolean
-  msa: MagicStringAST
-  imported: boolean
-  decimalPkgName: string
-  initial: boolean
-  callMethod: CallMethod
-  callArgs: string
-  autoDecimalOptions: InnerAutoDecimalOptions
-  integer: boolean
-  fromNewFunction?: boolean
-  needImport?: boolean
-  ownerPath?: NodePath
-}
 export interface ToDecimalConfig extends ToDecimalOptions {
   name?: string
 }
@@ -57,7 +41,7 @@ export interface AutoDecimalOptions {
   /**
    * @desc 转换时，Decimal 实例的名称，避免命名冲突。
    *
-   * @default __Decimal
+   * @default Decimal
    */
   decimalName?: string
   /**
@@ -77,8 +61,9 @@ export interface AutoDecimalOptions {
    */
   excludes?: FilterPattern
 }
-export type InnerAutoDecimalOptions = Required<AutoDecimalOptions> & {
-  ext: string
+export type InnerAutoDecimalOptions = Omit<Required<AutoDecimalOptions>, 'toDecimal' | 'supportNewFunction'> & {
+  toDecimal: ToDecimalConfig
+  supportNewFunction: NewFunctionOptions
 }
 export interface ToDecimalOptions {
   /**
@@ -115,11 +100,6 @@ export interface ToDecimalOptions {
 }
 export type InnerToDecimalOptions = Required<ToDecimalConfig>
 export type ToDecimal = <T extends ToDecimalOptions>(options?: T) => ToDecimalReturn<T>
-export interface Extra {
-  __extra: Record<string, unknown>
-  options: Options
-  __shouldTransform: boolean
-}
 
 export type CallMethod = 'toNumber' | 'toString' | 'toFixed' | 'decimal'
 export type Package = 'decimal.js' | 'decimal.js-light' | 'big.js'
@@ -134,7 +114,7 @@ export type RoundingModes = AutoDecimal['package'] extends 'big.js'
 export type DecimalRoundingMode = keyof typeof DECIMAL_RM
 export type DecimalLightRoundingMode = keyof typeof DECIMAL_RM_LIGHT
 export type BigRoundingMode = keyof typeof BIG_RM
-export type Operator = '+' | '-' | '*' | '/'
+export type Operator = '+' | '-' | '*' | '/' | '**'
 export interface CommentState {
   line: number
   block: boolean

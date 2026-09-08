@@ -1,15 +1,39 @@
 import type { Binding, NodePath } from '@babel/traverse'
-import type { ArrowFunctionExpression, AssignmentExpression, Expression, FunctionDeclaration, FunctionExpression, Identifier, NewExpression, Node, StringLiteral, TemplateLiteral } from '@babel/types'
-import type { NewFunctionOptions, Options } from '../../types'
-import { isArrayExpression, isAssignmentExpression, isCallExpression, isIdentifier, isMemberExpression, isNodesEquivalent, isNumericLiteral, isObjectProperty, isReturnStatement, isStatement, isStringLiteral, isVariableDeclarator } from '@babel/types'
-import { traverseAst } from '.'
+import type {
+  ArrowFunctionExpression,
+  AssignmentExpression,
+  Expression,
+  FunctionDeclaration,
+  FunctionExpression,
+  Identifier,
+  NewExpression,
+  Node,
+  StringLiteral,
+  TemplateLiteral,
+} from '@babel/types'
+import type { NewFunctionOptions, ToDecimalOptions } from '../../types'
+import type { Context } from '../context'
+import {
+  isArrayExpression,
+  isAssignmentExpression,
+  isCallExpression,
+  isIdentifier,
+  isMemberExpression,
+  isNodesEquivalent,
+  isNumericLiteral,
+  isObjectProperty,
+  isReturnStatement,
+  isStatement,
+  isStringLiteral,
+  isVariableDeclarator,
+} from '@babel/types'
+import { MagicStringAST } from 'magic-string-ast'
 import { RETURN_DECLARATION_CODE, RETURN_DECLARATION_FN, RETURN_DECLARATION_PREFIX } from '../constant'
-import { getTransformed } from '../transform'
+import transformScript from '../transformers/script'
 import { getFunctionName, getScopeBinding, getTargetPath, isFunctionNode, isStringNode } from '../utils'
 
-// TIPS 使用 new Function 时，需要将 __Decimal 以参数的形式传递过去
-export function resolveNewFunctionExpression(path: NodePath<NewExpression>, options: Options) {
-  if (!options.autoDecimalOptions.supportNewFunction)
+export function resolveNewFunctionExpression(path: NodePath<NewExpression>, s: MagicStringAST, ctx: Context) {
+  if (!ctx.options.supportNewFunction)
     return
   const { node } = path
   const { callee, arguments: args } = node
@@ -18,11 +42,13 @@ export function resolveNewFunctionExpression(path: NodePath<NewExpression>, opti
   if (args.length === 0)
     return
   const lastArg = args[args.length - 1]
-  resolveReturnParam(path, lastArg, options)
-  const { injectWindow } = options.autoDecimalOptions.supportNewFunction as NewFunctionOptions
+  ctx.internal = true
+  resolveReturnParam(path, lastArg, s, ctx)
+  const { injectWindow } = ctx.options.supportNewFunction as NewFunctionOptions
   if (!injectWindow) {
-    provideDecimal(path, lastArg as Expression, options)
+    provideDecimal(path, lastArg as Expression, s, ctx)
   }
+  ctx.internal = false
 }
 
 /**
@@ -42,48 +68,48 @@ export function resolveNewFunctionExpression(path: NodePath<NewExpression>, opti
  * }
  * new Function('a', 'b', arrowFunc / assignmentFunc / func)
  */
-function resolveReturnParam(path: NodePath, node: Node, options: Options) {
+function resolveReturnParam(path: NodePath, node: Node, s: MagicStringAST, ctx: Context) {
   if (isStringNode(node)) {
-    return resolveStringTemplateLiteral(node, options)
+    return resolveStringTemplateLiteral(node, s, ctx)
   }
   if (isIdentifier(node) || (isCallExpression(node) && isIdentifier(node.callee))) {
     const name = isIdentifier(node) ? node.name : (node.callee as Identifier).name
     const binding = getScopeBinding(path, name)
-    resolveVariableParam(options, binding, name)
+    resolveVariableParam(s, ctx, binding, name)
   }
 }
 
-function resolveVariableParam(options: Options, binding?: Binding, name?: string) {
+function resolveVariableParam(s: MagicStringAST, ctx: Context, binding?: Binding, name?: string) {
   if (!binding)
     return
   if (binding.kind === 'param') {
-    resolveVariableOfParam(binding, options, name)
+    resolveVariableOfParam(s, ctx, binding, name)
   }
   const { constantViolations, path } = binding
   if (isVariableDeclarator(path.node)) {
     const { init } = path.node
     if (!init)
       return
-    resolveAssignmentExpression(path, init, options)
+    resolveAssignmentExpression(path, init, s, ctx)
   }
   constantViolations.forEach((cv) => {
     if (isAssignmentExpression(cv.node)) {
       const { right } = cv.node
-      resolveAssignmentExpression(cv, right, options)
+      resolveAssignmentExpression(cv, right, s, ctx)
     }
   })
 }
 
-function resolveAssignmentExpression(path: NodePath, node: Expression, options: Options) {
+function resolveAssignmentExpression(path: NodePath, node: Expression, s: MagicStringAST, ctx: Context) {
   if (isStringNode(node)) {
-    return resolveStringTemplateLiteral(node, options)
+    return resolveStringTemplateLiteral(node, s, ctx)
   }
   if (isFunctionNode(node)) {
-    return resolveFunction(node, options)
+    return resolveFunction(node, s, ctx)
   }
   if (isIdentifier(node)) {
     const binding = getScopeBinding(path, node.name)
-    return resolveVariableParam(options, binding)
+    return resolveVariableParam(s, ctx, binding)
   }
   if (isCallExpression(node)) {
     const variableName = (node.callee as Identifier).name
@@ -92,18 +118,18 @@ function resolveAssignmentExpression(path: NodePath, node: Expression, options: 
       return
     const pathNode = binding.path.node
     if (isFunctionNode(pathNode)) {
-      resolveFunction(pathNode, options)
+      resolveFunction(pathNode, s, ctx)
       return
     }
     if (isVariableDeclarator(pathNode) && isFunctionNode(pathNode.init)) {
-      resolveFunction(pathNode.init, options)
+      resolveFunction(pathNode.init, s, ctx)
       return
     }
     console.warn(`未处理的节点，line: ${node.loc!.start.line}, ${node.loc!.end.index}; column: ${node.loc!.start.column}, ${node.loc!.end.column}`)
   }
 }
 // 解析参数形式的变量
-function resolveVariableOfParam(binding: Binding, options: Options, name?: string) {
+function resolveVariableOfParam(s: MagicStringAST, ctx: Context, binding: Binding, name?: string) {
   if (!isFunctionNode(binding.scope.block) || !name) {
     return
   }
@@ -126,22 +152,22 @@ function resolveVariableOfParam(binding: Binding, options: Options, name?: strin
     const targetParams = nodePath.parent.arguments[paramsIndex]
     if (!targetParams)
       return
-    resolveReturnParam(nodePath, targetParams, options)
+    resolveReturnParam(nodePath, targetParams, s, ctx)
   })
 }
 
-function provideDecimal(path: NodePath, node: Expression, options: Options) {
-  if (!options.msa.hasChanged())
+function provideDecimal(path: NodePath, node: Expression, s: MagicStringAST, ctx: Context) {
+  if (!s.hasChanged())
     return
   let parentPath: null | NodePath = path.parentPath
   let params: string | number
   // Decimal 形参
-  const decimalParamsContent = `'${options.decimalPkgName}', ${options.msa.snipNode(node)}`
+  const decimalParamsContent = `'${ctx.decimalPkgName}', ${s.snipNode(node)}`
   const { parent } = path
   let callName = ''
   if (isCallExpression(parent)) {
-    options.msa.update(node.start!, node.end!, decimalParamsContent)
-    options.msa.update(parent.end! - 1, parent.end!, `, ${options.decimalPkgName})`)
+    s.update(node.start!, node.end!, decimalParamsContent)
+    s.update(parent.end! - 1, parent.end!, `, ${ctx.decimalPkgName})`)
     return
   }
   if (isAssignmentExpression(parent)) {
@@ -157,20 +183,20 @@ function provideDecimal(path: NodePath, node: Expression, options: Options) {
       binding.referencePaths.forEach((reference) => {
         const referenceParent = reference.parentPath!.parent
         if (isCallExpression(referenceParent)) {
-          options.msa.update(referenceParent.end! - 1, referenceParent.end!, `, ${options.decimalPkgName})`)
+          s.update(referenceParent.end! - 1, referenceParent.end!, `, ${ctx.decimalPkgName})`)
           return
         }
         if (isAssignmentExpression(referenceParent)) {
           const { right } = referenceParent
           if (isNodesEquivalent(right, path.node)) {
-            options.msa.update(node.start!, node.end!, decimalParamsContent)
+            s.update(node.start!, node.end!, decimalParamsContent)
           }
           return
         }
         if (isMemberExpression(referenceParent)) {
           const targetPath = getTargetPath(reference, isCallExpression)
           if (targetPath) {
-            options.msa.update(targetPath.node.end! - 1, targetPath.node.end!, `, ${options.decimalPkgName})`)
+            s.update(targetPath.node.end! - 1, targetPath.node.end!, `, ${ctx.decimalPkgName})`)
           }
           else {
             const targetPath = getTargetPath(reference, isAssignmentExpression)
@@ -178,7 +204,7 @@ function provideDecimal(path: NodePath, node: Expression, options: Options) {
               return
             const { right } = targetPath.node as AssignmentExpression
             if (isNodesEquivalent(right, path.node)) {
-              options.msa.update(node.start!, node.end!, decimalParamsContent)
+              s.update(node.start!, node.end!, decimalParamsContent)
             }
           }
         }
@@ -209,11 +235,11 @@ function provideDecimal(path: NodePath, node: Expression, options: Options) {
   const binding = getScopeBinding(path, callName)
   if (!binding?.referenced)
     return
-  options.msa.update(node.start!, node.end!, decimalParamsContent)
+  s.update(node.start!, node.end!, decimalParamsContent)
   binding.referencePaths.forEach((referencePath) => {
     const { parent } = referencePath
     if (isCallExpression(parent)) {
-      options.msa.update(parent.end! - 1, parent.end!, `, ${options.decimalPkgName})`)
+      s.update(parent.end! - 1, parent.end!, `, ${ctx.decimalPkgName})`)
       return
     }
     if (isMemberExpression(parent)) {
@@ -225,13 +251,13 @@ function provideDecimal(path: NodePath, node: Expression, options: Options) {
         const targetPath = getTargetPath(referencePath, isCallExpression)
         if (!targetPath)
           return
-        options.msa.update(targetPath.node.end! - 1, targetPath.node.end!, `, ${options.decimalPkgName})`)
+        s.update(targetPath.node.end! - 1, targetPath.node.end!, `, ${ctx.decimalPkgName})`)
       }
     }
   })
 }
 
-function resolveStringTemplateLiteral(node: StringLiteral | TemplateLiteral, options: Options) {
+function resolveStringTemplateLiteral(node: StringLiteral | TemplateLiteral, s: MagicStringAST, ctx: Context) {
   let rawString = ''
   let quote = '\''
   if (isStringLiteral(node)) {
@@ -239,33 +265,23 @@ function resolveStringTemplateLiteral(node: StringLiteral | TemplateLiteral, opt
   }
   else {
     quote = '`'
-    rawString = options.msa.snipNode(node).toString().slice(1, -1)
+    rawString = s.snipNode(node).toString().slice(1, -1)
   }
-  const { autoDecimalOptions } = options
-  const supportNewFunction = autoDecimalOptions.supportNewFunction as NewFunctionOptions
+  const supportNewFunction = ctx.options.supportNewFunction as NewFunctionOptions
   const code = RETURN_DECLARATION_FN.replace(RETURN_DECLARATION_CODE, rawString)
-  const toDecimalParams = supportNewFunction.toDecimal ?? false
-  const runtimeOptions = {} as Options
-  const { msa: transformedMsa } = getTransformed(code, opts => traverseAst(Object.assign(runtimeOptions, opts, {
-    fromNewFunction: true,
-    needImport: options.needImport,
-  }), false), {
-    ...autoDecimalOptions,
-    toDecimal: toDecimalParams,
-  })
-  if (transformedMsa.hasChanged()) {
-    Object.assign(options, {
-      fromNewFunction: runtimeOptions.fromNewFunction,
-      needImport: runtimeOptions.needImport,
-    })
-    const result = transformedMsa.toString().replace(RETURN_DECLARATION_PREFIX, '').slice(0, -1)
-    options.msa.overwriteNode(node, `${quote}${result}${quote}`)
+  const toDecimalParams = supportNewFunction.toDecimal as ToDecimalOptions
+  ctx.setToDecimalOptions(toDecimalParams)
+  const newFnS = new MagicStringAST(code)
+  transformScript(code, newFnS, ctx)
+  if (newFnS.hasChanged()) {
+    const result = newFnS.toString().replace(RETURN_DECLARATION_PREFIX, '').slice(0, -1)
+    s.overwriteNode(node, `${quote}${result}${quote}`)
   }
 }
-function resolveFunction(node: FunctionDeclaration | ArrowFunctionExpression | FunctionExpression, options: Options) {
+function resolveFunction(node: FunctionDeclaration | ArrowFunctionExpression | FunctionExpression, s: MagicStringAST, ctx: Context) {
   const { body } = node
   if (isStringNode(body)) {
-    resolveStringTemplateLiteral(body, options)
+    resolveStringTemplateLiteral(body, s, ctx)
     return
   }
   if (isStatement(body)) {
@@ -277,6 +293,6 @@ function resolveFunction(node: FunctionDeclaration | ArrowFunctionExpression | F
     if (!argument || !isStringNode(argument)) {
       return
     }
-    resolveStringTemplateLiteral(argument, options)
+    resolveStringTemplateLiteral(argument, s, ctx)
   }
 }

@@ -1,7 +1,24 @@
-import type { Binding, Node, NodePath } from '@babel/traverse'
-import type { Identifier, MemberExpression } from '@babel/types'
-import type { BigRoundingMode, DecimalLightRoundingMode, DecimalRoundingMode, Options, Package, RoundingModes } from '../types'
-import { isArrowFunctionExpression, isBinaryExpression, isCallExpression, isFunctionDeclaration, isFunctionExpression, isIdentifier, isImportDefaultSpecifier, isImportNamespaceSpecifier, isImportSpecifier, isLiteral, isMemberExpression, isNumericLiteral, isStringLiteral, isTemplateLiteral, isVariableDeclarator } from '@babel/types'
+import type { Node, NodePath } from '@babel/traverse'
+import type { BinaryExpression, Identifier, MemberExpression } from '@babel/types'
+import type {
+  BigRoundingMode,
+  DecimalLightRoundingMode,
+  DecimalRoundingMode,
+  Package,
+  RoundingModes,
+} from '../types'
+import type { Context } from './context'
+import {
+  isArrowFunctionExpression,
+  isBinaryExpression,
+  isFunctionDeclaration,
+  isFunctionExpression,
+  isIdentifier,
+  isMemberExpression,
+  isStringLiteral,
+  isTemplateLiteral,
+  isVariableDeclarator,
+} from '@babel/types'
 import { BIG_RM, DECIMAL_RM, DECIMAL_RM_LIGHT } from './constant'
 
 export function getRoundingMode(mode: RoundingModes | number, packageName: Package) {
@@ -16,20 +33,12 @@ export function getRoundingMode(mode: RoundingModes | number, packageName: Packa
   }
   return DECIMAL_RM_LIGHT[mode as DecimalLightRoundingMode]
 }
-export function getRootBinaryExprPath(path: NodePath) {
-  let parentPath = path.parentPath
-  let binaryPath = path
-  let loop = true
-  while (loop && parentPath) {
-    if (isBinaryExpression(parentPath.node)) {
-      binaryPath = parentPath
-      parentPath = parentPath.parentPath
-    }
-    else {
-      loop = false
-    }
+export function getRootBinaryExprPath(path: NodePath): NodePath<BinaryExpression> | null {
+  let current: NodePath | null = path
+  while (current.parentPath && isBinaryExpression(current.parentPath.node)) {
+    current = current.parentPath
   }
-  return binaryPath
+  return current as NodePath<BinaryExpression> | null
 }
 export function getScopeBinding(path: NodePath | null, name?: string | MemberExpression) {
   if (!path || !name)
@@ -47,35 +56,17 @@ export function getScopeBinding(path: NodePath | null, name?: string | MemberExp
   return path.scope.getBinding(name)!
 }
 export function getTargetPath<T extends Node = Node>(path: NodePath, isTargetFunction: ((node?: Node | null) => boolean)): NodePath<T> | null {
-  let loop = true
   let parentPath: NodePath | null = path
-  while (loop && parentPath) {
-    if (isTargetFunction(parentPath?.parent)) {
-      loop = false
-    }
-    else {
-      parentPath = parentPath.parentPath
-    }
+  while (parentPath && !isTargetFunction(parentPath.parent)) {
+    parentPath = parentPath.parentPath
   }
   return parentPath?.parentPath as NodePath<T> | null
-}
-export function isIntegerValue(node: Node, path: NodePath, options: Options) {
-  if (options.autoDecimalOptions.toDecimal) {
-    return false
-  }
-  return isNumeric(node, path, options, true)
-}
-export function isNumberValue(node: Node, path: NodePath, options: Options) {
-  return isNumeric(node, path, options, false)
 }
 export function isStringNode(node?: Node | null) {
   return isStringLiteral(node) || isTemplateLiteral(node)
 }
 export function isFunctionNode(node?: Node | null) {
   return isArrowFunctionExpression(node) || isFunctionExpression(node) || isFunctionDeclaration(node)
-}
-export function isImportNode(node?: Node | null) {
-  return isImportNamespaceSpecifier(node) || isImportDefaultSpecifier(node) || isImportSpecifier(node)
 }
 export function getFunctionName(path: NodePath) {
   if (isFunctionDeclaration(path.node)) {
@@ -88,59 +79,22 @@ export function getFunctionName(path: NodePath) {
     }
   }
 }
-export function getPkgName(options: Options) {
-  if (options.fromNewFunction) {
-    const { supportNewFunction } = options.autoDecimalOptions
+export function getPkgName(ctx: Context) {
+  if (ctx.internal && ctx.options.supportNewFunction) {
+    const { supportNewFunction } = ctx.options
     if (typeof supportNewFunction !== 'boolean' && supportNewFunction.injectWindow) {
       return `window.${supportNewFunction.injectWindow}`
     }
   }
-  return options.decimalPkgName
+  return ctx.decimalPkgName
 }
 
-export function getNodeValue(node: Node, path: NodePath, options: Options, isInteger?: boolean) {
-  // TIPS 跳过导入的变量和函数调用
-  if (isFunctionNode(node) || isImportNode(node) || isCallExpression(node)) {
-    return
-  }
-  if (isLiteral(node)) {
-    return getLiteralValue(node, path, options)
-  }
-  const ownerPath = options.ownerPath ?? path
-  let parentPath: NodePath | null = ownerPath
-  let binding: Binding | undefined
-  const name = isIdentifier(node) ? node.name : isMemberExpression(node) ? getObjectIdentifierName(node) : ''
-  while (!binding && parentPath) {
-    binding = getScopeBinding(parentPath, name)
-    parentPath = parentPath.parentPath
-  }
-  if (!binding) {
-    return
-  }
-  if (!isVariableDeclarator(binding.path.node)) {
-    return
-  }
-  const { init } = binding.path.node
-  if (isCallExpression(init)) {
-    return
-  }
-  if (isLiteral(init)) {
-    return getLiteralValue(init, binding.path, options)
-  }
-  if (isIdentifier(init)) {
-    return getNodeValue(init, binding.path, options, isInteger)
-  }
-}
-function isNumeric(node: Node, path: NodePath, options: Options, isInteger = false): boolean {
-  const value = getNodeValue(node, path, options, isInteger)
-  if (typeof value === 'undefined') {
+export function isToDecimalCall(callee: Node, ctx: Context): callee is MemberExpression {
+  if (!isMemberExpression(callee)) {
     return false
   }
-  const isNotNumber = Number.isNaN(Number(value))
-  if (isNotNumber || typeof value === 'string') {
-    return false
-  }
-  return isInteger ? !value.toString().includes('.') : true
+  const { property } = callee
+  return isIdentifier(property) && property.name === ctx.options.toDecimal.name
 }
 function getObjectIdentifierName(node: MemberExpression) {
   if (isMemberExpression(node.object)) {
@@ -150,43 +104,4 @@ function getObjectIdentifierName(node: MemberExpression) {
     return node.object.name
   }
   return ''
-}
-function getLiteralValue(node: Node, path: NodePath, options: Options, isInteger?: boolean) {
-  if (isNumericLiteral(node)) {
-    return node.value
-  }
-  if (!options.autoDecimalOptions.supportString) {
-    return
-  }
-  if (isStringLiteral(node)) {
-    return node.value
-  }
-  if (isTemplateLiteral(node)) {
-    const { quasis, expressions } = node
-    if (!expressions.length) {
-      return quasis.map(item => item.value.raw).join('')
-    }
-    const quasisCopy = quasis.slice(1, -1)
-    let index = 0
-    const exprList: any[] = []
-    expressions.forEach((expr) => {
-      if (quasisCopy.length) {
-        const quasisItem = quasisCopy[index]
-        const start = quasisItem.loc!.start
-        const exprStart = expr.loc!.start
-        if (start.line < exprStart.line || (start.line === exprStart.line && start.column <= exprStart.column)) {
-          exprList.push(quasisItem.value.raw)
-          index++
-        }
-      }
-      exprList.push(getNodeValue(expr, path, options, isInteger))
-    })
-    if (index < quasisCopy.length - 1) {
-      const remainingQuasis = quasisCopy.slice(index)
-      remainingQuasis.forEach(item => exprList.push(item.value.raw))
-    }
-    exprList.unshift(quasis[0].value.raw)
-    exprList.push(quasis[quasis.length - 1].value.raw)
-    return exprList.join('')
-  }
 }

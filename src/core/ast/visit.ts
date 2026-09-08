@@ -1,16 +1,22 @@
+/*
+ * @Date: 2026-09-03 14:11:27
+ * @Author: lyumg
+ * @FilePath: /unplugin-auto-decimal/src/core/ast/visit.ts
+ */
+
 import type { TraverseOptions } from '@babel/traverse'
 import type { File } from '@babel/types'
-import type { Options } from '../../types'
+import type { MagicStringAST } from 'magic-string-ast'
+import type { Context } from '../context'
 import { isJSXEmptyExpression } from '@babel/types'
 import { BLOCK_COMMENT, FILE_COMMENT, PKG_NAME } from '../constant'
-import { resolveBinaryExpression } from './binary-expression'
-import { resolveCallExpression } from './call-expression'
+import { resolveBinaryExpression } from './binary-expr'
+import { resolveCallExpression } from './call-expr'
 import { blockComment, innerComment, nextComment } from './comment'
-import { resolveExportDefaultDeclaration } from './export-declaration'
 import { resolveImportDeclaration } from './import-declaration'
-import { resolveNewFunctionExpression } from './new-function'
+import { resolveNewFunctionExpression } from './new-fn'
 
-export function traverseAst(options: Options, checkImport = true, templateImport = false): TraverseOptions {
+export function visitAST(s: MagicStringAST, ctx: Context): TraverseOptions {
   return {
     enter(path) {
       switch (path.type) {
@@ -32,32 +38,24 @@ export function traverseAst(options: Options, checkImport = true, templateImport
       enter(path) {
         const file = path.parent as File
         const fileIgnore = file.comments?.some(comment => comment.value.includes(FILE_COMMENT)) ?? false
-        options.imported = fileIgnore && templateImport
-        if (fileIgnore && !templateImport) {
+        if (fileIgnore) {
           path.skip()
         }
       },
       exit() {
-        const hasChanged = options.msa.hasChanged()
-        if (!checkImport || options.imported || (!hasChanged && !templateImport)) {
-          return
+        if (ctx.needImport && !ctx.imported && !ctx.internal && s.hasChanged()) {
+          const pkgName = ctx.options.package ?? PKG_NAME
+          s.prependLeft(0, `\nimport ${ctx.decimalPkgName} from '${pkgName}';\n`)
+          ctx.imported = true
+          ctx.needImport = false
         }
-        if (!options.needImport)
-          return
-        const pkgName = options.autoDecimalOptions?.package ?? PKG_NAME
-        options.imported = true
-        options.msa.prepend(`\nimport ${options.decimalPkgName} from '${pkgName}';\n`)
+        ctx.reset()
       },
     },
-    ExportDefaultDeclaration(path) {
-      if (!templateImport)
-        return
-      resolveExportDefaultDeclaration(path, options)
-    },
     ImportDeclaration(path) {
-      if (options.imported)
+      if (ctx.imported)
         return
-      resolveImportDeclaration(path, options)
+      resolveImportDeclaration(path, ctx)
     },
     JSXElement: path => innerComment(path, BLOCK_COMMENT),
     JSXOpeningElement: (path) => {
@@ -70,8 +68,8 @@ export function traverseAst(options: Options, checkImport = true, templateImport
         return
       innerComment(path)
     },
-    BinaryExpression: path => resolveBinaryExpression(path, options),
-    CallExpression: path => resolveCallExpression(path, options),
-    NewExpression: path => resolveNewFunctionExpression(path, options),
+    BinaryExpression: path => resolveBinaryExpression(path, s, ctx),
+    CallExpression: path => resolveCallExpression(path, s, ctx),
+    NewExpression: path => resolveNewFunctionExpression(path, s, ctx),
   }
 }

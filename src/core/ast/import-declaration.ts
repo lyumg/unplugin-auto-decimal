@@ -1,26 +1,30 @@
 import type { NodePath } from '@babel/traverse'
 import type { ImportDeclaration } from '@babel/types'
-import type { Options } from '../../types'
+import type { Context } from '../context'
 import { isIdentifier, isImportDefaultSpecifier, isImportNamespaceSpecifier } from '@babel/types'
 import { DECIMAL_PKG_NAME, PKG_NAME } from '../constant'
-
-export function resolveImportDeclaration(path: NodePath<ImportDeclaration>, options: Options) {
+/*
+ * @Date: 2026-09-03 09:08:54
+ * @Author: lyumg
+ * @FilePath: /unplugin-auto-decimal/src/core/ast/import-declaration.ts
+ */
+export function resolveImportDeclaration(path: NodePath<ImportDeclaration>, ctx: Context) {
   if (path.node.source.value === PKG_NAME) {
-    const defaultDecimalPkgName = options.autoDecimalOptions.decimalName || DECIMAL_PKG_NAME
-    options.imported = path.node.specifiers.some((spec) => {
+    const defaultDecimalPkgName = ctx.options.decimalName || DECIMAL_PKG_NAME
+    ctx.imported = path.node.specifiers.some((spec) => {
       if (isImportDefaultSpecifier(spec)) {
         if (spec.local.name !== defaultDecimalPkgName) {
-          options.decimalPkgName = spec.local.name
+          ctx.decimalPkgName = spec.local.name
         }
         return true
       }
       if (isImportNamespaceSpecifier(spec)) {
-        const pkgName = options.autoDecimalOptions.package === 'big.js' ? 'Big' : 'Decimal'
-        options.decimalPkgName = `${spec.local.name}.${pkgName}`
+        const pkgName = ctx.options.package === 'big.js' ? 'Big' : 'Decimal'
+        ctx.decimalPkgName = `${spec.local.name}.${pkgName}`
         return true
       }
       if (isIdentifier(spec.imported) && spec.imported.name !== defaultDecimalPkgName) {
-        options.decimalPkgName = spec.local.name
+        ctx.decimalPkgName = spec.local.name
         return true
       }
       return false

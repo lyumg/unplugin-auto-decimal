@@ -197,6 +197,7 @@
     }
   },
   "dependencies": {
+    "@babel/generator": "^7.28.3",
     "@babel/parser": "7.28.3",
     "@babel/traverse": "7.28.3",
     "@babel/types": "7.28.2",
@@ -216,6 +217,7 @@
     "@types/node": "^24.3.0",
     "bumpp": "^10.2.3",
     "chalk": "^5.6.0",
+    "decimal.js-light": "^2.5.1",
     "eslint": "^9.33.0",
     "esno": "^4.8.0",
     "fast-glob": "^3.3.3",
