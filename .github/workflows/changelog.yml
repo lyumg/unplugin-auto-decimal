@@ -11,12 +11,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
+          registry-url: https://registry.npmjs.org/
           node-version: lts/*
 
       - run: npx changelogithub
