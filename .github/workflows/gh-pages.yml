@@ -2,7 +2,7 @@ name: Deploy VitePress site to Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, beta]
 
   workflow_dispatch:
 
@@ -23,8 +23,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
-      - uses: pnpm/action-setup@v3 
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v3
         with:
           version: 9
       - name: Setup Node
