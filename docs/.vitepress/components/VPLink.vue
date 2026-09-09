@@ -6,7 +6,7 @@
 <script lang="ts" setup>
 import { useData } from 'vitepress'
 import { computed } from 'vue'
-import { isLinkExternal, normalizeLink } from '../utils/sidebar'
+import { isLinkExternal, normalizeLink } from '../utils/utils'
 
 const props = withDefaults(defineProps<{
   tag?: string

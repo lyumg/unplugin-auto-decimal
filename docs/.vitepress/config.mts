@@ -79,6 +79,12 @@ export default defineConfig({
             new URL('./components/VPSidebar.vue', import.meta.url),
           ),
         },
+        {
+          find: /^.*\/VPDocFooter\.vue$/,
+          replacement: fileURLToPath(
+            new URL('./components/VPDocFooter.vue', import.meta.url),
+          ),
+        },
       ],
     },
     plugins: [

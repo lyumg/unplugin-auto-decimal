@@ -7,7 +7,7 @@ import type { DefaultTheme } from 'vitepress'
 import type { ComputedRef } from 'vue'
 import { useData, useRoute } from 'vitepress'
 import { computed, nextTick, onMounted, ref, watch, watchEffect } from 'vue'
-import { containsActiveLink, isActive } from '../utils/sidebar'
+import { containsActiveLink, isActive } from '../utils/utils'
 
 type SidebarItem = DefaultTheme.SidebarItem
 export function useSidebarItemControl(

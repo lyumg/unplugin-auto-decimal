@@ -12,7 +12,7 @@ import {
   shallowRef,
   watch,
 } from 'vue'
-import { getSidebar, getSidebarGroups } from '../utils/sidebar'
+import { getSidebar, getSidebarGroups } from '../utils/utils'
 
 const sidebar = shallowRef<DefaultTheme.SidebarItem[]>([])
 

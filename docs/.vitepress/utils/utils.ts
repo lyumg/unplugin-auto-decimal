@@ -3,6 +3,13 @@ import type { Ref } from 'vue'
 import { withBase } from 'vitepress'
 
 type SidebarItem = DefaultTheme.SidebarItem
+export interface SidebarLink {
+  text: string
+  link: string
+  docFooterText?: string
+  rel?: string
+  target?: string
+}
 export function containsActiveLink(
   path: string,
   hash: string,
@@ -199,4 +206,36 @@ function addBase(items: SidebarItem[], _base?: string): SidebarItem[] {
       item.items = addBase(item.items, base)
     return item
   })
+}
+export function uniqBy<T>(array: T[], keyFn: (item: T) => any): T[] {
+  const seen = new Set()
+  return array.filter((item) => {
+    const k = keyFn(item)
+    return seen.has(k) ? false : seen.add(k)
+  })
+}
+export function getFlatSideBarLinks(sidebar: SidebarItem[]): SidebarLink[] {
+  const links: SidebarLink[] = []
+
+  function recursivelyExtractLinks(items: SidebarItem[]) {
+    for (const item of items) {
+      if (item.text && item.link) {
+        links.push({
+          text: item.text,
+          link: item.link,
+          docFooterText: item.docFooterText,
+          rel: item.rel,
+          target: item.target,
+        })
+      }
+
+      if (item.items) {
+        recursivelyExtractLinks(item.items)
+      }
+    }
+  }
+
+  recursivelyExtractLinks(sidebar)
+
+  return links
 }
