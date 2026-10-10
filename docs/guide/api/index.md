@@ -6,12 +6,23 @@
 
 | 属性               | 描述     | 类型     | 默认值     | 
 | ----------------  | :------: | :------: |:------: |
-| [`includes`](./includes.md) ^(1.5.0) | 包含的文件 | FilterPattern | .cjs .mjs .js .ts .mts .jsx .tsx .vue |
-| [`excludes`](./includes.md) ^(1.5.0) | 排除的文件 | FilterPattern | node_modules |
+| [`includes`](./includes.md) ^(1.5.0) | 包含的文件 | [FilterPattern](#filterpattern) | .cjs .mjs .js .ts .mts .jsx .tsx .vue |
+| [`excludes`](./includes.md) ^(1.5.0) | 排除的文件 | [FilterPattern](#filterpattern) | node_modules |
 | decorator ^(1.5.0) | 是否支持装饰器 | boolean | false |
-|| [`tailPatchZero`](./tail-patch-zero.md) | 区分计算表达式和字符串拼接 | boolean | false | 
+| [`tailPatchZero`](./tail-patch-zero.md) | 区分计算表达式和字符串拼接 | boolean | false | 
 | [`supportString`](./support-string.md) | 支持字符串计算 | boolean | false |
 | package | 高精度计算库 | `decimal.js`、`decimal.js-light`、`big.js` | `decimal.js-light` |
 | [`toDecimal`](./to-decimal.md) ^(1.2.0) | 使用 `toDecimal` 进行转换 | boolean \| options  | false |
 | dts ^(1.2.0) | 生成.d.ts 文件。 如果本地安装了 `typescript` 默认为 true，js 项目需要手动设置为 false | boolean \| string | false |
 | [`supportNewFunction`](./new-function.md) ^(1.4.0) | 支持处理 new Function | boolean \| options | false |
+| tryGetting ^(2.0.0) | 尝试获取变量的值（不支持通过 import 导入的变量） | boolean | false |
+
+
+### FilterPattern
+
+`FilterPattern` 用于匹配文件路径，支持传入字符串（glob 模式）或正则表达式，也可以传入数组同时指定多个匹配规则；传入 `null` 时表示不进行匹配。
+
+```ts
+type FilterPattern = ReadonlyArray<string | RegExp> | string | RegExp | null
+```
+
