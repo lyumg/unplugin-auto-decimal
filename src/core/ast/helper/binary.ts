@@ -7,6 +7,7 @@ import { isBinaryExpression, isNumericLiteral } from '@babel/types'
 import { BASE_COMMENT, LITERALS, OPERATOR_KEYS } from '../../constant'
 import { getComments } from '../comment'
 import { DecimalNode } from '../decimal-node'
+import { getStaticValue } from './static-value'
 /*
  * @Date: 2026-09-03 17:20:47
  * @Author: lyumg
@@ -24,8 +25,8 @@ export function processBinaryExpr(s: MagicStringAST, ctx: Context, node: BinaryE
   }
   try {
     path.skip()
-    const decimalNode = generateDecimalNode(s, node)
-    if (decimalNode.integer) {
+    const decimalNode = generateDecimalNode(path, node, s, ctx)
+    if (decimalNode.integer || decimalNode.invalidNumeric) {
       return
     }
     s.overwriteNode(node, decimalNode.toString(ctx))
@@ -85,16 +86,29 @@ function resolveNeedImport(ctx: Context) {
   }
 }
 
-function generateDecimalNode(s: MagicStringAST, node: BinaryExpression) {
+function generateDecimalNode(path: NodePath, node: BinaryExpression, s: MagicStringAST, ctx: Context) {
   const decimalNode = new DecimalNode(node.operator as Operator)
-  const leftNode = isBinaryExpression(node.left) ? generateDecimalNode(s, node.left) : undefined
-  const rightNode = isBinaryExpression(node.right) ? generateDecimalNode(s, node.right) : undefined
-  decimalNode.left = !leftNode || leftNode.integer
-    // TODO 尝试获取节点值
-    // 若无法解析时，直接使用
-    // 若值为非数字（当 supportString 时，可被转为数字的字符串除外），则跳过转换
-    ? s.snipNode(node.left).toString()
-    : leftNode.toString()
+  const leftNode = isBinaryExpression(node.left) ? generateDecimalNode(path.get('left'), node.left, s, ctx) : undefined
+  const rightNode = isBinaryExpression(node.right) ? generateDecimalNode(path.get('right'), node.right, s, ctx) : undefined
+  // 尝试获取节点值
+  // 若无法解析时，直接使用
+  // 若值为非数字（当 supportString 时，可被转为数字的字符串除外），则跳过转换
+  if (!leftNode || leftNode.integer) {
+    const leftValue = getStaticValue(path.get('left'))
+    decimalNode.invalidNumeric = isInvalidNumeric(leftValue, ctx)
+    decimalNode.left = s.snipNode(node.left).toString()
+  }
+  else {
+    decimalNode.left = leftNode.toString()
+  }
+  if (!rightNode || rightNode.integer) {
+    const rightValue = getStaticValue(path.get('right'))
+    decimalNode.invalidNumeric = isInvalidNumeric(rightValue, ctx)
+    decimalNode.right = s.snipNode(node.right).toString()
+  }
+  else {
+    decimalNode.right = rightNode.toString()
+  }
   decimalNode.right = !rightNode || rightNode.integer
     ? s.snipNode(node.right).toString()
     : rightNode.toString()
@@ -103,5 +117,16 @@ function generateDecimalNode(s: MagicStringAST, node: BinaryExpression) {
   const leftInteger = leftNode?.integer ?? (isNumericLiteral(node.left) && Number.isInteger(node.left.value))
   const rightInteger = rightNode?.integer ?? (isNumericLiteral(node.right) && Number.isInteger(node.right.value))
   decimalNode.integer = leftInteger && rightInteger && node.operator !== '/'
+  decimalNode.invalidNumeric = leftNode?.invalidNumeric || rightNode?.invalidNumeric || decimalNode.invalidNumeric
   return decimalNode
+}
+function isInvalidNumeric(value: unknown, ctx: Context) {
+  if (!ctx.options.tryGetting) {
+    return false
+  }
+  const isNil = value === undefined || value === null
+  if (ctx.options.supportString) {
+    return isNil || value === '' || Number.isNaN(Number(value))
+  }
+  return isNil || typeof value !== 'number'
 }

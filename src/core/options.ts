@@ -28,6 +28,7 @@ const defaultOptions: AutoDecimalOptions = {
   decorator: false,
   supportNewFunction: false,
   decimalName: DECIMAL_PKG_NAME,
+  tryGetting: false,
 }
 export function resolveOptions(rawOptions?: AutoDecimalOptions): InnerAutoDecimalOptions {
   const options = Object.assign({}, defaultOptions, rawOptions)

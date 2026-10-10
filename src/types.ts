@@ -60,6 +60,11 @@ export interface AutoDecimalOptions {
    * @default node_modules
    */
   excludes?: FilterPattern
+  /**
+   * @desc 是否尝试获取计算表达式中静态变量的值
+   * @default true
+   */
+  tryGetting?: boolean
 }
 export type InnerAutoDecimalOptions = Omit<Required<AutoDecimalOptions>, 'toDecimal' | 'supportNewFunction'> & {
   toDecimal: ToDecimalConfig
