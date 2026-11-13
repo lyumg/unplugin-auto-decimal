@@ -20,7 +20,7 @@
 
 由于目前 `AutoDecimal` 不会解析通过 `import` 引入的变量，所以有如下限制：
 
-- **需要将 `callMethod` 设置为 `toFixed` 时，那么 `roundingModes` 和 `callMethod` 只能在当前文件中定义**。
+- **如果想要将 `callMethod` 设置为 `toFixed` ，那么 `roundingModes` 和 `callMethod` 只能在当前文件中定义**。
 
 :::
 
