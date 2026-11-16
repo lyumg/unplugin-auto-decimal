@@ -94,7 +94,7 @@ function generateDecimalNode(path: NodePath, node: BinaryExpression, s: MagicStr
   // 若无法解析时，直接使用
   // 若值为非数字（当 supportString 时，可被转为数字的字符串除外），则跳过转换
   if (!leftNode || leftNode.integer) {
-    const leftValue = getStaticValue(path.get('left'))
+    const leftValue = getStaticValue(path.get('left'), ctx)
     decimalNode.invalidNumeric = isInvalidNumeric(leftValue, ctx)
     decimalNode.left = s.snipNode(node.left).toString()
   }
@@ -102,8 +102,10 @@ function generateDecimalNode(path: NodePath, node: BinaryExpression, s: MagicStr
     decimalNode.left = leftNode.toString()
   }
   if (!rightNode || rightNode.integer) {
-    const rightValue = getStaticValue(path.get('right'))
-    decimalNode.invalidNumeric = isInvalidNumeric(rightValue, ctx)
+    const rightValue = getStaticValue(path.get('right'), ctx)
+    if (!decimalNode.invalidNumeric) {
+      decimalNode.invalidNumeric = isInvalidNumeric(rightValue, ctx)
+    }
     decimalNode.right = s.snipNode(node.right).toString()
   }
   else {
@@ -121,12 +123,19 @@ function generateDecimalNode(path: NodePath, node: BinaryExpression, s: MagicStr
   return decimalNode
 }
 function isInvalidNumeric(value: unknown, ctx: Context) {
-  if (!ctx.options.tryGetting) {
+  if (!ctx.options.tryGetting || ctx.internal) {
     return false
   }
-  const isNil = value === undefined || value === null
-  if (ctx.options.supportString) {
-    return isNil || value === '' || Number.isNaN(Number(value))
+  // null 为 import/require 或者无法解析的值，默认视为有效数字，可以进行转换
+  if (value === null) {
+    return false
   }
-  return isNil || typeof value !== 'number'
+  // undefined 为 null 或者 undefined，默认视为无效数字，不能进行转换
+  if (value === undefined) {
+    return true
+  }
+  if (ctx.options.supportString) {
+    return value === '' || Number.isNaN(Number(value))
+  }
+  return typeof value !== 'number'
 }
