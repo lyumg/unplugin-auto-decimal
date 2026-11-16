@@ -1,3 +1,4 @@
+import type { NodePath } from '@babel/traverse'
 import type { AutoDecimalOptions, InnerAutoDecimalOptions, ToDecimalOptions } from '../types'
 import { extname } from 'node:path'
 import { DECIMAL_PKG_NAME } from './constant'
@@ -23,6 +24,7 @@ export class Context {
   hasExportDefault = false
   ext = ''
   id = ''
+  ownerPath: NodePath | null = null
   constructor(id: string, rawOptions: AutoDecimalOptions) {
     const options = resolveOptions(rawOptions)
     this.decimalPkgName = options.decimalName || DECIMAL_PKG_NAME

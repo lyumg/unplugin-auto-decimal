@@ -1,6 +1,7 @@
 /* eslint-disable eqeqeq */
 import type { NodePath } from '@babel/traverse'
 import type { FunctionDeclaration, FunctionExpression } from '@babel/types'
+import type { Context } from '../../context'
 import {
   isArrayExpression,
   isArrowFunctionExpression,
@@ -112,8 +113,11 @@ function hasImportDependency(path: NodePath<any>, visited = new Set()) {
 /**
  * 获取一个函数的返回值
  * 仅当函数体为单一 return 语句或返回表达式时有效
+ * 返回值遵循 getStaticValueInternal 的语义：
+ *   - 无法确定返回值时返回 null
+ *   - 实际返回值为 null/undefined 时返回 undefined
  */
-function getFunctionReturnValue(funcPath: NodePath<FunctionExpression | FunctionDeclaration>, visited = new Set()) {
+function getFunctionReturnValue(funcPath: NodePath<FunctionExpression | FunctionDeclaration>, visited = new Set(), ctx: Context | null = null) {
   const body = funcPath.get('body')
   if (isBlockStatement(body.node)) {
     // 获取所有 return 语句
@@ -123,7 +127,7 @@ function getFunctionReturnValue(funcPath: NodePath<FunctionExpression | Function
       ReturnStatement(p) {
         const arg = p.get('argument')
         if (arg.node) {
-          const val = getStaticValueInternal(arg, visited)
+          const val = getStaticValueInternal(arg, visited, ctx)
           // 如果遇到多个 return，取第一个
           if (!hasReturn) {
             returnValue = val
@@ -131,7 +135,7 @@ function getFunctionReturnValue(funcPath: NodePath<FunctionExpression | Function
           }
         }
         else {
-          // return; 相当于 undefined
+          // return; 实际值为 undefined
           if (!hasReturn) {
             returnValue = undefined
             hasReturn = true
@@ -139,21 +143,29 @@ function getFunctionReturnValue(funcPath: NodePath<FunctionExpression | Function
         }
       },
     })
-    return returnValue
+    // 没有 return 语句时无法求值，返回 null
+    return hasReturn ? returnValue : null
   }
   else if (isExpression(body.node)) {
     // 箭头函数直接是表达式
-    return getStaticValueInternal(body, visited)
+    return getStaticValueInternal(body, visited, ctx)
   }
-  return undefined
+  return null
 }
 
-function getStaticValueInternal(path: any, visited = new Set()): any {
+/**
+ * 静态求值内部实现
+ * 返回值语义：
+ *   - null：无法求值，或存在 import/require 依赖
+ *   - undefined：实际求值结果为 null 或 undefined
+ *   - 其他：实际求值结果
+ */
+function getStaticValueInternal(path: any, visited = new Set(), ctx: Context | null = null): any {
   if (visited.has(path.node))
-    return undefined
+    return null
   visited.add(path.node)
 
-  // 仅获取当前代码作用域内的静态值，如果为 import 导入则直接返回 null
+  // 存在 import/require 依赖时无法在当前作用域内可靠求值，返回 null
   if (hasImportDependency(path, new Set())) {
     return null
   }
@@ -167,7 +179,8 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
       return BigInt(node.value)
     }
     if (isNullLiteral(node)) {
-      return null
+      // 实际值为 null，统一以 undefined 表示“值为 null 或 undefined”
+      return undefined
     }
 
     if (isTemplateLiteral(node)) {
@@ -176,7 +189,7 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
         const quasi = node.quasis[i]
         result += quasi.value.cooked
         if (i < node.expressions.length) {
-          const exprVal = getStaticValueInternal(path.get(`expressions.${i}`), visited)
+          const exprVal = getStaticValueInternal(path.get(`expressions.${i}`), visited, ctx)
           if (exprVal === null)
             return null
           if (exprVal !== undefined) {
@@ -194,28 +207,38 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
   }
 
   if (isIdentifier(node) && path.isReferencedIdentifier()) {
-    const binding = path.scope.getBinding(node.name)
-    if (!binding)
-      return undefined
+    let binding = path.scope.getBinding(node.name)
+    if (ctx && !binding) {
+      binding = ctx.ownerPath?.scope.getBinding(node.name)
+    }
+    if (!binding) {
+      // undefined 是全局只读变量，不存在作用域绑定，其实际值为 undefined
+      // 注意：若 undefined 被局部声明/参数遮蔽，binding 存在，会走正常的变量解析流程
+      if (node.name === 'undefined')
+        return undefined
+      return null
+    }
     if (binding.kind === 'module')
       return null
     if (isVariableDeclarator(binding.path.node)) {
       const initPath = binding.path.get('init')
       if (initPath.node) {
-        return getStaticValueInternal(initPath, visited)
+        return getStaticValueInternal(initPath, visited, ctx)
       }
+      // 声明时未初始化，此时实际值为 undefined
       return undefined
     }
     if (binding.path.isFunctionDeclaration() || binding.path.isFunctionExpression()) {
       // 尝试获取函数的返回值
-      return getFunctionReturnValue(binding.path, visited)
+      return getFunctionReturnValue(binding.path, visited, ctx)
     }
-    return undefined
+    // 其他绑定类型（如类声明、参数等）无法静态求值
+    return null
   }
 
   if (isMemberExpression(node)) {
-    const objVal = getStaticValueInternal(path.get('object'), visited)
-    // null 表示为 import 导入
+    const objVal = getStaticValueInternal(path.get('object'), visited, ctx)
+    // null：无法求值；undefined：实际值为 null/undefined，均直接向上透传
     if (objVal === null || objVal === undefined)
       return objVal
     let propVal
@@ -224,7 +247,7 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
     }
     else {
       const propPath = path.get('property')
-      propVal = getStaticValueInternal(propPath, visited)
+      propVal = getStaticValueInternal(propPath, visited, ctx)
       if (propVal === null || propVal === undefined)
         return propVal
     }
@@ -239,7 +262,7 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
       }
       return objVal[propVal]
     }
-    return undefined
+    return null
   }
 
   if (isObjectExpression(node)) {
@@ -253,13 +276,13 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
           }
           else {
             const keyPath = path.get(`properties.${node.properties.indexOf(prop)}.key`)
-            const keyVal = getStaticValueInternal(keyPath, visited)
+            const keyVal = getStaticValueInternal(keyPath, visited, ctx)
             if (keyVal === null)
               return null
             key = keyVal
           }
           const valPath = path.get(`properties.${node.properties.indexOf(prop)}.value`)
-          const val = getStaticValueInternal(valPath, visited)
+          const val = getStaticValueInternal(valPath, visited, ctx)
           if (val === null)
             return null
           result[key] = val
@@ -269,7 +292,7 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
         }
       }
       else if (isSpreadElement(prop)) {
-        const spreadVal = getStaticValueInternal(path.get(`properties.${node.properties.indexOf(prop)}.argument`), visited)
+        const spreadVal = getStaticValueInternal(path.get(`properties.${node.properties.indexOf(prop)}.argument`), visited, ctx)
         if (spreadVal === null)
           return null
         if (typeof spreadVal === 'object' && spreadVal !== null) {
@@ -285,10 +308,11 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
     for (let i = 0; i < node.elements.length; i++) {
       const elem = node.elements[i]
       if (elem === null) {
-        result.push(null)
+        // 稀疏数组的空位读取结果为 undefined
+        result.push(undefined)
       }
       else if (isSpreadElement(elem)) {
-        const spreadVal = getStaticValueInternal(path.get(`elements.${i}.argument`), visited)
+        const spreadVal = getStaticValueInternal(path.get(`elements.${i}.argument`), visited, ctx)
         if (spreadVal === null)
           return null
         if (Array.isArray(spreadVal)) {
@@ -299,7 +323,7 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
         }
       }
       else {
-        const val = getStaticValueInternal(path.get(`elements.${i}`), visited)
+        const val = getStaticValueInternal(path.get(`elements.${i}`), visited, ctx)
         if (val === null)
           return null
         result.push(val)
@@ -309,8 +333,8 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
   }
 
   if (isBinaryExpression(node)) {
-    const left = getStaticValueInternal(path.get('left'), visited)
-    const right = getStaticValueInternal(path.get('right'), visited)
+    const left = getStaticValueInternal(path.get('left'), visited, ctx)
+    const right = getStaticValueInternal(path.get('right'), visited, ctx)
     if (left === null || right === null)
       return null
     if (left === undefined || right === undefined)
@@ -331,16 +355,16 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
         case '<=': return left <= right
         case '>': return left > right
         case '>=': return left >= right
-        default: return undefined
+        default: return null
       }
     }
     catch {
-      return undefined
+      return null
     }
   }
 
   if (isUnaryExpression(node)) {
-    const arg = getStaticValueInternal(path.get('argument'), visited)
+    const arg = getStaticValueInternal(path.get('argument'), visited, ctx)
     if (arg === null || arg === undefined)
       return arg
     try {
@@ -352,16 +376,16 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
         case 'typeof': return typeof arg
         case 'void': return void arg
         case 'delete': return undefined
-        default: return undefined
+        default: return null
       }
     }
     catch {
-      return undefined
+      return null
     }
   }
 
   if (isLogicalExpression(node)) {
-    const left = getStaticValueInternal(path.get('left'), visited)
+    const left = getStaticValueInternal(path.get('left'), visited, ctx)
     if (left === null)
       return null
     if (left === undefined)
@@ -370,7 +394,7 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
     if (node.operator === '&&') {
       if (!left)
         return left
-      const right = getStaticValueInternal(path.get('right'), visited)
+      const right = getStaticValueInternal(path.get('right'), visited, ctx)
       if (right === null)
         return null
       return right
@@ -378,7 +402,7 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
     else if (node.operator === '||') {
       if (left)
         return left
-      const right = getStaticValueInternal(path.get('right'), visited)
+      const right = getStaticValueInternal(path.get('right'), visited, ctx)
       if (right === null)
         return null
       return right
@@ -386,22 +410,22 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
     else if (node.operator === '??') {
       if (left !== null && left !== undefined)
         return left
-      const right = getStaticValueInternal(path.get('right'), visited)
+      const right = getStaticValueInternal(path.get('right'), visited, ctx)
       if (right === null)
         return null
       return right
     }
-    return undefined
+    return null
   }
 
   if (isConditionalExpression(node)) {
-    const test = getStaticValueInternal(path.get('test'), visited)
+    const test = getStaticValueInternal(path.get('test'), visited, ctx)
     if (test === null)
       return null
     if (test === undefined)
       return undefined
     const branch = test ? path.get('consequent') : path.get('alternate')
-    return getStaticValueInternal(branch, visited)
+    return getStaticValueInternal(branch, visited, ctx)
   }
 
   if (isCallExpression(node)) {
@@ -416,10 +440,10 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
     }
     else if (isMemberExpression(node.callee) && !node.callee.computed) {
       // 如 Object.keys
-      const objPart = getStaticValueInternal(path.get('callee.object'), visited)
+      const objPart = getStaticValueInternal(path.get('callee.object'), visited, ctx)
       if (objPart === null)
         return null
-      const propPart = getStaticValueInternal(path.get('callee.property'), visited)
+      const propPart = getStaticValueInternal(path.get('callee.property'), visited, ctx)
       if (propPart === null)
         return null
       if (typeof objPart === 'object' && typeof propPart === 'string') {
@@ -430,7 +454,7 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
     }
     if (calleeName && BUILTIN_PURE_FUNCTIONS.has(calleeName)) {
       const args = node.arguments.map((arg, idx) => {
-        const argVal = getStaticValueInternal(path.get(`arguments.${idx}`), visited)
+        const argVal = getStaticValueInternal(path.get(`arguments.${idx}`), visited, ctx)
         if (argVal === null)
           return null
         return argVal
@@ -444,7 +468,7 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
         return (fn as (...args: any[]) => any)(...args)
       }
       catch {
-        return undefined
+        return null
       }
     }
 
@@ -455,29 +479,30 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
     }
     else if (isMemberExpression(node.callee)) {
       // 例如 obj.method
-      const objVal = getStaticValueInternal(path.get('callee.object'), visited)
+      const objVal = getStaticValueInternal(path.get('callee.object'), visited, ctx)
       if (objVal === null || objVal === undefined)
         return objVal
-      const propVal = getStaticValueInternal(path.get('callee.property'), visited)
+      const propVal = getStaticValueInternal(path.get('callee.property'), visited, ctx)
       if (propVal === null || propVal === undefined)
         return propVal
       // 尝试获取其属性对应的函数
       if (typeof objVal === 'object' && objVal !== null) {
         const method = objVal[propVal]
         if (typeof method === 'function') {
-          return undefined
+          // 无法静态求值对象方法的调用结果
+          return null
         }
       }
     }
     if (funcBinding && (isFunctionDeclaration(funcBinding.path.node) || isFunctionExpression(funcBinding.path.node) || isArrowFunctionExpression(funcBinding.path.node))) {
       // 尝试执行函数（只处理无参或参数可求值的情况）
-      const args = node.arguments.map((arg, idx) => getStaticValueInternal(path.get(`arguments.${idx}`), visited))
+      const args = node.arguments.map((arg, idx) => getStaticValueInternal(path.get(`arguments.${idx}`), visited, ctx))
       if (args.includes(null))
         return null
       if (args.includes(undefined))
         return undefined
       // 无法真正的执行函数，只能尝试分析函数体返回值，前提为该函数是一个纯函数
-      // 或者，可以尝试通过函数体计算，但参数可能影响返回值，所以先返回 undefined
+      // 或者，可以尝试通过函数体计算，但参数可能影响返回值，所以先返回 null
       // 如果函数体是简单的 return 表达式且不引用参数，可以求值
       const body = funcBinding.path.get('body')
       // 检查函数体是否使用了参数
@@ -499,11 +524,11 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
         const retVal = getFunctionReturnValue(funcBinding.path, visited)
         return retVal
       }
-      // 依赖参数，返回 undefined
-      return undefined
+      // 依赖参数，无法求值
+      return null
     }
 
-    return undefined
+    return null
   }
 
   if (isNewExpression(node)) {
@@ -511,7 +536,7 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
     if (isIdentifier(node.callee)) {
       const name = node.callee.name
       if (name === 'Date') {
-        const args = node.arguments.map((arg, idx) => getStaticValueInternal(path.get(`arguments.${idx}`), visited))
+        const args = node.arguments.map((arg, idx) => getStaticValueInternal(path.get(`arguments.${idx}`), visited, ctx))
         if (args.includes(null))
           return null
         if (args.includes(undefined))
@@ -521,11 +546,11 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
           return new Date(...args)
         }
         catch {
-          return undefined
+          return null
         }
       }
       if (name === 'RegExp') {
-        const args = node.arguments.map((arg, idx) => getStaticValueInternal(path.get(`arguments.${idx}`), visited))
+        const args = node.arguments.map((arg, idx) => getStaticValueInternal(path.get(`arguments.${idx}`), visited, ctx))
         if (args.includes(null))
           return null
         if (args.includes(undefined))
@@ -534,11 +559,11 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
           return new RegExp(args[0], args[1])
         }
         catch {
-          return undefined
+          return null
         }
       }
       if (name === 'Error') {
-        const args = node.arguments.map((arg, idx) => getStaticValueInternal(path.get(`arguments.${idx}`), visited))
+        const args = node.arguments.map((arg, idx) => getStaticValueInternal(path.get(`arguments.${idx}`), visited, ctx))
         if (args.includes(null))
           return null
         if (args.includes(undefined))
@@ -547,11 +572,11 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
           return new Error(args[0])
         }
         catch {
-          return undefined
+          return null
         }
       }
     }
-    return undefined
+    return null
   }
 
   // 箭头函数/函数表达式/函数声明
@@ -561,18 +586,19 @@ function getStaticValueInternal(path: any, visited = new Set()): any {
     return retVal
   }
 
-  return undefined
+  // 不支持的节点类型，无法求值
+  return null
 }
 
 /**
  * 公开的静态值获取函数
  * @param {NodePath} path - 任意节点的 Path
- *   - 若包含 import 依赖 → null
- *   - 若能静态求值 → 求值结果
- *   - 若无法确定 → undefined
+ *  - 若包含 import 依赖或无法确定的值 → null
+ *  - 若能静态求值 → 求值结果
+ *  - null/undefined → undefined
  */
-export function getStaticValue(path: NodePath) {
-  return getStaticValueInternal(path, new Set())
+export function getStaticValue(path: NodePath, ctx: Context | null = null) {
+  return getStaticValueInternal(path, new Set(), ctx)
 }
 
 /**

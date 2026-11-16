@@ -93,7 +93,7 @@ function assignDecimalCallExpr(
    * 一种为 xx + xxx.toDecimal() 的形式
    */
   const fnArgs = path.isCallExpression() ? path.get('arguments.0') : path.get('right.arguments.0')
-  const value = getStaticValue(fnArgs)
+  const value = getStaticValue(fnArgs, ctx)
   node.properties.forEach((prop) => {
     // TODO key 不是 identifier 时，需要处理一下
     // 有可能是 computed property

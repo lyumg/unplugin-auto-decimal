@@ -43,12 +43,14 @@ export function resolveNewFunctionExpression(path: NodePath<NewExpression>, s: M
     return
   const lastArg = args[args.length - 1]
   ctx.internal = true
+  ctx.ownerPath = path
   resolveReturnParam(path, lastArg, s, ctx)
   const { injectWindow } = ctx.options.supportNewFunction as NewFunctionOptions
   if (!injectWindow) {
     provideDecimal(path, lastArg as Expression, s, ctx)
   }
   ctx.internal = false
+  ctx.ownerPath = null
 }
 
 /**
