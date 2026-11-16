@@ -15,7 +15,7 @@
 | [`toDecimal`](./to-decimal.md) ^(1.2.0) | 使用 `toDecimal` 进行转换 | boolean \| options  | false |
 | dts ^(1.2.0) | 生成.d.ts 文件。 如果本地安装了 `typescript` 默认为 true，js 项目需要手动设置为 false | boolean \| string | false |
 | [`supportNewFunction`](./new-function.md) ^(1.4.0) | 支持处理 new Function | boolean \| options | false |
-| tryGetting ^(2.0.0) | 尝试获取变量的值（不支持通过 import 导入的变量） | boolean | false |
+| [`tryGetting`](./try-getting.md) ^(2.0.0) | 尝试获取变量的值（不支持通过 import 导入的变量） | boolean | false |
 
 
 ### FilterPattern

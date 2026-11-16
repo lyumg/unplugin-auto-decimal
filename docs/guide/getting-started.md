@@ -4,13 +4,13 @@ outline: deep
 
 # 快速开始
 :::danger
-~~使用前请注意，`AutoDecimal` 不会进行变量检测。当计算表达式中存在变量时，需要开发者自行评断该变量的值是否可以被 `decimal.js` 处理，如果 `decimal.js` 无法处理的话，会报错 `Uncaught Error: [DecimalError] Invalid argument`。~~
+使用前请注意，~~`AutoDecimal` 不会进行变量检测~~。当计算表达式中存在变量时，需要开发者自行评断该变量的值是否可以被 `decimal.js` 处理，如果 `decimal.js` 无法处理的话，会报错 `Uncaught Error: [DecimalError] Invalid argument`。
 
-~~如果不想被 `AutoDecimal` 转换的话，可以通过[注释等方式跳过](./comment/index.md)。~~
+如果不想被 `AutoDecimal` 转换的话，可以通过[注释等方式跳过](./comment/index.md)。
 :::
 
 :::tip
-从 2.0.0 开始，可以通过 `tryGetting` 参数来尝试获取变量的值（目前不支持通过 `import` 引入的变量），如果变量无法转换为数值时，那么 `AutoDecimal` 会自动跳过。
+从 2.0.0 开始，可以通过 [`tryGetting`](./api/try-getting.md) 参数来尝试获取变量的值（目前不支持通过 `import` 引入的变量），如果变量无法转换为数值时，那么 `AutoDecimal` 会自动跳过。
 :::
 ## 安装
 

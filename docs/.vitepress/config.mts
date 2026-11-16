@@ -49,6 +49,7 @@ export default defineConfig({
             { text: 'supportString', link: '/guide/api/support-string' },
             { text: 'toDecimal ^(1.2.0)', link: '/guide/api/to-decimal' },
             { text: 'supportNewFunction ^(1.4.0)', link: '/guide/api/new-function' },
+            { text: 'tryGetting ^(2.0.0)', link: '/guide/api/try-getting' },
           ] },
           { text: '跳过转换', link: '/guide/comment', items: [
             { text: 'splicing', link: '/guide/comment/splicing' },
