@@ -5,6 +5,7 @@ import type { NewFunctionOptions, Operator } from '../../../types'
 import type { Context } from '../../context'
 import { isBinaryExpression, isNumericLiteral } from '@babel/types'
 import { BASE_COMMENT, LITERALS, OPERATOR_KEYS } from '../../constant'
+import { isToDecimalCall } from '../../utils'
 import { getComments } from '../comment'
 import { DecimalNode } from '../decimal-node'
 import { getStaticValue } from './static-value'
@@ -94,30 +95,37 @@ function generateDecimalNode(path: NodePath, node: BinaryExpression, s: MagicStr
   // 若无法解析时，直接使用
   // 若值为非数字（当 supportString 时，可被转为数字的字符串除外），则跳过转换
   if (!leftNode || leftNode.integer) {
-    const leftValue = getStaticValue(path.get('left'), ctx)
-    decimalNode.invalidNumeric = isInvalidNumeric(leftValue, ctx)
+    if (ctx.options.tryGetting) {
+      decimalNode.leftValue = getStaticValue(path.get('left'), ctx)
+      decimalNode.invalidNumeric = isInvalidNumeric(decimalNode.leftValue, ctx)
+    }
     decimalNode.left = s.snipNode(node.left).toString()
   }
   else {
     decimalNode.left = leftNode.toString()
   }
   if (!rightNode || rightNode.integer) {
-    const rightValue = getStaticValue(path.get('right'), ctx)
-    if (!decimalNode.invalidNumeric) {
-      decimalNode.invalidNumeric = isInvalidNumeric(rightValue, ctx)
+    if (ctx.options.tryGetting) {
+      const rightPath = path.get('right')
+      if (rightPath.isCallExpression() && isToDecimalCall(rightPath.node.callee, ctx)) {
+        decimalNode.rightValue = getStaticValue(rightPath.get('callee.object'), ctx)
+      }
+      else {
+        decimalNode.rightValue = getStaticValue(rightPath, ctx)
+      }
+      if (!decimalNode.invalidNumeric) {
+        decimalNode.invalidNumeric = isInvalidNumeric(decimalNode.rightValue, ctx)
+      }
     }
     decimalNode.right = s.snipNode(node.right).toString()
   }
   else {
     decimalNode.right = rightNode.toString()
   }
-  decimalNode.right = !rightNode || rightNode.integer
-    ? s.snipNode(node.right).toString()
-    : rightNode.toString()
   decimalNode.leftNode = leftNode
   decimalNode.rightNode = rightNode
-  const leftInteger = leftNode?.integer ?? (isNumericLiteral(node.left) && Number.isInteger(node.left.value))
-  const rightInteger = rightNode?.integer ?? (isNumericLiteral(node.right) && Number.isInteger(node.right.value))
+  const leftInteger = leftNode?.integer ?? isInteger(decimalNode.leftValue, node.left)
+  const rightInteger = rightNode?.integer ?? isInteger(decimalNode.rightValue, node.right)
   decimalNode.integer = leftInteger && rightInteger && node.operator !== '/'
   decimalNode.invalidNumeric = leftNode?.invalidNumeric || rightNode?.invalidNumeric || decimalNode.invalidNumeric
   return decimalNode
@@ -138,4 +146,10 @@ function isInvalidNumeric(value: unknown, ctx: Context) {
     return value === '' || Number.isNaN(Number(value))
   }
   return typeof value !== 'number'
+}
+function isInteger(value: unknown, node: Node) {
+  if (typeof value === 'number') {
+    return true
+  }
+  return isNumericLiteral(node) && Number.isInteger(node.value)
 }
