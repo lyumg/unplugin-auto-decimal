@@ -16,6 +16,8 @@ export class DecimalNode {
   left = ''
   right = ''
   operator = ''
+  leftValue: any = null
+  rightValue: any = null
   constructor(operator: Operator) {
     this.operator = OPERATOR[operator]
   }
