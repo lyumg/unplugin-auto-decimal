@@ -89,8 +89,19 @@ function resolveNeedImport(ctx: Context) {
 
 function generateDecimalNode(path: NodePath, node: BinaryExpression, s: MagicStringAST, ctx: Context) {
   const decimalNode = new DecimalNode(node.operator as Operator)
-  const leftNode = isBinaryExpression(node.left) ? generateDecimalNode(path.get('left'), node.left, s, ctx) : undefined
-  const rightNode = isBinaryExpression(node.right) ? generateDecimalNode(path.get('right'), node.right, s, ctx) : undefined
+  const leftPath = ctx.options.toDecimal && path.isCallExpression()
+    ? path.get('callee.object.left')
+    : path.get('left')
+  const rightPath = ctx.options.toDecimal && path.isCallExpression()
+    ? path.get('callee.object.right')
+    : path.get('right')
+  // 尝试获取节点值
+  const leftNode = isBinaryExpression(node.left)
+    ? generateDecimalNode(leftPath, node.left, s, ctx)
+    : undefined
+  const rightNode = isBinaryExpression(node.right)
+    ? generateDecimalNode(rightPath, node.right, s, ctx)
+    : undefined
   // 尝试获取节点值
   // 若无法解析时，直接使用
   // 若值为非数字（当 supportString 时，可被转为数字的字符串除外），则跳过转换
@@ -107,7 +118,7 @@ function generateDecimalNode(path: NodePath, node: BinaryExpression, s: MagicStr
   if (!rightNode || rightNode.integer) {
     if (ctx.options.tryGetting) {
       const rightPath = path.get('right')
-      if (rightPath.isCallExpression() && isToDecimalCall(rightPath.node.callee, ctx)) {
+      if (ctx.options.toDecimal && rightPath.isCallExpression() && isToDecimalCall(rightPath.node.callee, ctx)) {
         decimalNode.rightValue = getStaticValue(rightPath.get('callee.object'), ctx)
       }
       else {
@@ -149,7 +160,7 @@ function isInvalidNumeric(value: unknown, ctx: Context) {
 }
 function isInteger(value: unknown, node: Node) {
   if (typeof value === 'number') {
-    return true
+    return Number.isInteger(value)
   }
   return isNumericLiteral(node) && Number.isInteger(node.value)
 }
